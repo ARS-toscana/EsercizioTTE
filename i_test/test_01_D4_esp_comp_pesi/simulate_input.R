@@ -38,23 +38,23 @@ probexposure <- 0.3
 
 # input metadata
 
-thisdirarchive <- file.path(thisdir, "..", "..", "run", "p_parameters", "archive_parameters")
+thisdirarchive <- file.path(thisdir, "..", "..", "p_parameters", "archive_parameters")
 
 
 # list covariates per type
 
-parameters_this_step <- as.data.table(unique(readxl::read_excel(file.path(thisdirarchive,"codebooks",paste0("D3_coorte_baseline.xlsx")),1)))
+parameters_this_step <- as.data.table(unique(readxl::read_excel(file.path(thisdirarchive,"codebooks",paste0("D4_coorte_baseline_pesi.xlsx")),1)))
 
-thiscovariates_bin <- unlist(parameters_this_step[parameter == "covar_bin",.(values)])
-thiscovariates_cat <- unlist(parameters_this_step[parameter == "covar_cat",.(values)])
-thiscovariates_cont <- unlist(parameters_this_step[parameter == "covar_cont",.(values)])
+thiscovariates_bin <- unlist(parameters_this_step[parameter == "covar_bin",.(value)])
+thiscovariates_cat <- unlist(parameters_this_step[parameter == "covar_cat",.(value)])
+thiscovariates_cont <- unlist(parameters_this_step[parameter == "covar_cont",.(value)])
 
 covariates_binary <- paste0(thiscovariates_bin,"_at_t0")
 
 
-covariates_cat <- paste0(thiscovariates_cat,"_at_t0")
+#covariates_cat <- paste0(thiscovariates_cat,"_at_t0")
 
-covariates_cont <- paste0(thiscovariates_cont, "_at_t0")
+#covariates_cont <- paste0(thiscovariates_cont, "_at_t0")
 
 # probability of exposure
 
@@ -67,7 +67,7 @@ probexposure = c(.34)
 # all variables
 
 
-list_variables <- c("person_id", "t0", "gender_at_t0", "birth_year", "age_at_t0", "entry_spell_category", "exit_spell_category", "exposure", covariates_binary, covariates_cat, covariates_cont) # person_id 
+list_variables <- c("person_id", "t0", "gender_at_t0", "birth_year", "age_at_t0", "entry_spell_category", "exit_spell_category", "exposure", covariates_binary) #(covariates_cat, covariates_cont) # person_id 
 
 #############
 # create base 
@@ -149,44 +149,44 @@ for (cb in covariates_binary) {
   j <- j + 1
 }
 
-for (cb in covariates_cont) {
-  seedchange <- 112231 + j
-  set.seed(seedchange)
-  labname <- gsub("_at_t0", "", cb)
-  print(labname)
-  Minlab <- 0
-  Maxlab <- 5000
-  data[, cov := runif(.N, min = Minlab, max = Maxlab)]
-  seedchange <- 112302 + j
-  set.seed(seedchange)
-  data[, random := runif(.N)]
-  data[random > .5, cov := NA_real_]
-  setnames(data,"cov",cb)
-  j <- j + 1
-}
+# for (cb in covariates_cont) {
+#   seedchange <- 112231 + j
+#   set.seed(seedchange)
+#   labname <- gsub("_at_t0", "", cb)
+#   print(labname)
+#   Minlab <- 0
+#   Maxlab <- 5000
+#   data[, cov := runif(.N, min = Minlab, max = Maxlab)]
+#   seedchange <- 112302 + j
+#   set.seed(seedchange)
+#   data[, random := runif(.N)]
+#   data[random > .5, cov := NA_real_]
+#   setnames(data,"cov",cb)
+#   j <- j + 1
+# }
 
 
-for (cb in setdiff(covariates_cat, "gender_at_t0")) {
-  seedchange <- 1131 + j
-  set.seed(seedchange)
-  labname <- gsub("_at_t0", "", cb)
-  print(labname)
-  varname <- paste0(labname,"value")
-  record <- parameters_this_step[parameter == varname,]
-  thisvalues <- record$values
-  data[, cov := sample(thisvalues, .N, replace = T)]
-  seedchange <- 1135 + j
-  set.seed(seedchange)
-  data[, random := runif(.N)]
-  data[random > .5, cov := NA_real_]
-  record <- parameters_this_step[values == labname,]
-  has_missing <- record$has_missing[1]
-  print(has_missing)
-  if (is.null(has_missing) | has_missing == 0) {
-    data[is.na(cov), cov := "0"]
-  }
-  setnames(data,"cov",cb)
-}
+# for (cb in setdiff(covariates_cat, "gender_at_t0")) {
+#   seedchange <- 1131 + j
+#   set.seed(seedchange)
+#   labname <- gsub("_at_t0", "", cb)
+#   print(labname)
+#   varname <- paste0(labname,"value")
+#   record <- parameters_this_step[parameter == varname,]
+#   thisvalues <- record$values
+#   data[, cov := sample(thisvalues, .N, replace = T)]
+#   seedchange <- 1135 + j
+#   set.seed(seedchange)
+#   data[, random := runif(.N)]
+#   data[random > .5, cov := NA_real_]
+#   record <- parameters_this_step[values == labname,]
+#   has_missing <- record$has_missing[1]
+#   print(has_missing)
+#   if (is.null(has_missing) | has_missing == 0) {
+#     data[is.na(cov), cov := "0"]
+#   }
+#   setnames(data,"cov",cb)
+# }
 
 
 # keep variables

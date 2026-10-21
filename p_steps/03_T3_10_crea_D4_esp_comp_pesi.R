@@ -1,6 +1,6 @@
 ############################################################
 #                                                          #
-####         Create_D4_EXP_ACT_COV_WEIGHT         #
+####         Create_D4_esp_comp_pesi         #
 #                                                          #
 ############################################################
 
@@ -10,14 +10,14 @@
 # v 1.1 4 Sep 2026
 
 
-print('CREATE D4_EXP_ACT_COV_WEIGHT')
+print('CREATE D4_esp_comp_pesi')
 
 
 #########################################
 # assign directories and other parameters used in this step
 
 if (TEST){
-  testname <- "test_01_D4_EXP_ACT_COV_WEIGHT"
+  testname <- "test_01_D4_esp_comp_pesi"
   thisdirinput <- file.path(dirtest,testname)
   thisdiroutput <- file.path(thisdirinput,"g_output")
   thisdiroutputplots <- thisdiroutput
@@ -35,16 +35,16 @@ if (TEST){
 
 #########################################
 
-parameters_this_step <- as.data.table(unique(readxl::read_excel(file.path(thisdirarchive,"codebooks",paste0("D4_EXP_ACT_COV_WEIGHT.xlsx")),1)))
+parameters_this_step <- as.data.table(unique(readxl::read_excel(file.path(thisdirarchive,"codebooks",paste0("D4_coorte_baseline_pesi.xlsx")),1)))
 
-covariate <- unname(unlist(parameters_this_step[parameter == "covariate",.(values)]))
+covariate <- unname(unlist(parameters_this_step[parameter == "covar_bin",.(value)]))
 covariate_at_t0 <- paste0(covariate,"_at_t0")
 
 
 #########################################
 # load input datasets
 
-input <- readRDS(file.path(thisdirinput,paste0("D3_EXP_ACT_COV",suffix,".rds")))
+input <- readRDS(file.path(thisdirinput,paste0("D3_coorte_baseline.rds")))
 
 #########################################
 # start_processing
@@ -53,16 +53,16 @@ to_keep<-c("exposure", "age_at_t0", "gender_at_t0", covariate_at_t0)
 # handle missing
 
 
-if (ds == "DANREG") {
-     to_keep <- setdiff(to_keep, "Smoking_imputed_at_t0")
-}else{
-input[, Smoking_imputed_at_t0 := as.factor(Smoking_imputed_at_t0)]
-
-   }
+# if (ds == "DANREG") {
+#      to_keep <- setdiff(to_keep, "Smoking_imputed_at_t0")
+# }else{
+# input[, Smoking_imputed_at_t0 := as.factor(Smoking_imputed_at_t0)]
+# 
+#    }
 variables<-input[,..to_keep]
 
 variables[, gender_at_t0 := as.factor(gender_at_t0)]
-variables[, CKD_at_t0 := as.factor(CKD_at_t0)]
+#variables[, CKD_at_t0 := as.factor(CKD_at_t0)]
 
 
 # remove from the model variables that are constant
@@ -82,7 +82,7 @@ model <- glm(exposure ~ .,
 #propensity score
 input$ps <- model$fitted.values
 
-summary_file <- file.path(thisdiroutput, paste0("D5_PS_model_summary", suffix, ".txt"))
+summary_file <- file.path(thisdiroutput, paste0("D5_PS_model_summary.txt"))
 
 capture.output(
   summary(model),
@@ -167,6 +167,6 @@ input <- input[,..listvartokeep]
 
 outputfile <- input
 
-nameoutput <- paste0("D4_EXP_ACT_COV_WEIGHT")
+nameoutput <- paste0("D4_esp_comp_pesi")
 assign(nameoutput, outputfile)
 saveRDS(outputfile, file = file.path(thisdiroutput, paste0(nameoutput,".rds")))
