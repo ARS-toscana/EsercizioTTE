@@ -1,17 +1,14 @@
-############################################################
-#                                                          #
-####         Create_D4_esp_comp_pesi         #
-#                                                          #
-############################################################
+#######################################
+#                                     #
+#        Create_D4_esp_comp_pesi      #
+#                                     #          
+#######################################
 
+# authors: Sofia Miniati, Paoletti Olga, Rosa Gini, Sabrina Giometto, Elena Ferrati
 
-# authors: Sofia Miniati, Paoletti Olga, Rosa Gini
-
-# v 1.1 4 Sep 2026
-
+# v 1.1 22 Oct 2026
 
 print('CREATE D4_esp_comp_pesi')
-
 
 #########################################
 # assign directories and other parameters used in this step
@@ -20,50 +17,37 @@ if (TEST){
   testname <- "test_01_D4_esp_comp_pesi"
   thisdirinput <- file.path(dirtest,testname)
   thisdiroutput <- file.path(thisdirinput,"g_output")
-  thisdiroutputplots <- thisdiroutput
-  thisdirsettings <- thisdirinput
-  thisdirarchive <-dirarchive
-  
   dir.create(thisdiroutput, showWarnings = F)
 }else{
   thisdirinput <- dirtemp
   thisdiroutput <- dirtemp
-  thisdiroutputplots <- direxp
-  thisdirsettings <- dirpargen
-  thisdirarchive <-dirarchive
 }
 
 #########################################
 
-parameters_this_step <- as.data.table(unique(readxl::read_excel(file.path(thisdirarchive,"codebooks",paste0("D4_coorte_baseline_pesi.xlsx")),1)))
+parameters_this_step <- as.data.table(unique(readxl::read_excel(file.path(thisdirarchive,"codebooks",paste0("D4_esp_comp_baseline_pesi.xlsx")),1)))
 
 covariate <- unname(unlist(parameters_this_step[parameter == "covar_bin",.(value)]))
-covariate_at_t0 <- paste0(covariate,"_at_t0")
-
+# covariate_at_t0 <- paste0(covariate,"_at_t0")
+covariate_at_t0 <- covariate
 
 #########################################
 # load input datasets
 
-input <- readRDS(file.path(thisdirinput,paste0("D3_coorte_baseline.rds")))
+input <- readRDS(file.path(thisdirinput,paste0("D3_esp_comp_con_baseline.rds")))
 
 #########################################
 # start_processing
 
-to_keep<-c("exposure", "age_at_t0", "gender_at_t0", covariate_at_t0)
-# handle missing
+to_keep <- c("drug", "age", covariate_at_t0)
 
+variables <- input[,..to_keep]
 
-# if (ds == "DANREG") {
-#      to_keep <- setdiff(to_keep, "Smoking_imputed_at_t0")
-# }else{
-# input[, Smoking_imputed_at_t0 := as.factor(Smoking_imputed_at_t0)]
-# 
-#    }
-variables<-input[,..to_keep]
+var <- setdiff(names(variables), "age")
 
-variables[, gender_at_t0 := as.factor(gender_at_t0)]
-#variables[, CKD_at_t0 := as.factor(CKD_at_t0)]
+variables[, (var) := lapply(.SD, as.factor), .SDcols = var]
 
+# str(variables)
 
 # remove from the model variables that are constant
 
@@ -75,7 +59,7 @@ const_cols <- sapply(variables, function(x) {
 variables_clean <- variables[, !const_cols, with = FALSE]
 
 #logistic model
-model <- glm(exposure ~ ., 
+model <- glm(drug ~ ., 
              data = variables_clean,  
              family = binomial(link="logit"))
 
@@ -111,6 +95,7 @@ model_vars <- attr(model$terms, "term.labels")
 
 # assign each coefficient to its origin variable
 match_var <- function(cn) {
+  browser()
   if (cn == "(Intercept)") return("(Intercept)")
   matches <- model_vars[sapply(model_vars, function(v) startsWith(cn, v))]
   if (length(matches) == 0) return(NA_character_)
@@ -130,18 +115,18 @@ or_table <- data.table(
   p_value = pval
 )
 
-or_file <- file.path(thisdiroutputplots, paste0("D5_PS_model_OR.rds"))
+or_file <- file.path(thisdiroutput, paste0("D5_PS_model_OR.rds"))
 saveRDS(or_table, file = or_file)
 
-  #stabilized weights
+#stabilized weights
 
 # marginal probability of treatment
-p_treated <- mean(input$exposure == 1, na.rm = TRUE)
+p_treated <- mean(input$drug == "A", na.rm = TRUE)
 
 # stabilized weights
 input[, weight := ifelse(
-  exposure == 1,
-  p_treated / ps,
+  drug == "A",
+  p_treated/ps,
   (1 - p_treated) / (1 - ps)
 )]
 
@@ -150,16 +135,15 @@ input[, weight := ifelse(
 # clean
 
 listvartokeep <- c("person_id",
-                   "t0",
-                   "exposure",
-                   "age_at_t0",
-                   "gender_at_t0",
+                   "date_first",
+                   "drug",
+                   "age",
                    covariate_at_t0,
                    "ps",
                    "weight"
 )
-input <- input[,..listvartokeep]
 
+input <- input[,..listvartokeep]
 
 
 #########################################
