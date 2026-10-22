@@ -1,9 +1,8 @@
-# CRFV TOSCANA
-# studio antidiabetici
+# Esempio Target Trial Emulation
 
-# authors: Rosa Gini, Sabrina Giometto
+# authors: Rosa Gini, Sabrina Giometto, Elena Ferrati
 
-# v 0.1 15 Mag 2026
+# v 0.1 22 Oct 2026
 
 # skeleton 
 
