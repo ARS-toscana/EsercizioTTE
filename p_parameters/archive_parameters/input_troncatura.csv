@@ -1,5 +1,5 @@
-ds,lower_limit,upper_limit,exposure
-BIFAP,,,0
-BIFAP,,,1
-CPRD,,99,0
-CPRD,,99,1
+ds,lower_limit,upper_limit,drug
+BIFAP,,,B
+BIFAP,,,A
+CPRD,,99,B
+CPRD,,99,A
