@@ -34,10 +34,16 @@ thisdirarchive <- file.path(thisdir, "..", "..", "p_parameters", "archive_parame
 
 # list covariates
 parameters_this_step <- as.data.table(unique(readxl::read_excel(file.path(thisdirarchive,"codebooks",paste0("D4_esp_comp_baseline_pesi.xlsx")),1)))
+
 thiscovariates_bin <- unlist(parameters_this_step[parameter == "covar_bin",.(value)])
+thiscovariates_cat <- unlist(parameters_this_step[parameter == "covar_cat",.(value)])
+thiscovariates_cont <- unlist(parameters_this_step[parameter == "covar_cont",.(value)])
 
 # covariates_binary <- paste0(thiscovariates_bin,"_at_t0")
 covariates_binary <- thiscovariates_bin
+covariates_cat <- thiscovariates_cat
+covariates_cont <- thiscovariates_cont
+
 
 # set probability of exposure
 probexposure = 0.55
@@ -47,7 +53,7 @@ probexposure = 0.55
 # DATA GENERATION
 
 # all variables
-list_variables <- c("person_id", "date_first", "op_start", "op_end", "year_first", "ASL", "age", "drug", covariates_binary)
+list_variables <- c("person_id", "date_first", "op_start", "op_end", "year_first", "ASL", "age", "drug", covariates_binary, covariates_cat, covariates_cont)
 
 
 # create base 
@@ -114,6 +120,33 @@ for (cb in covariates_binary) {
   setnames(data,"cov",cb)
   j <- j + 1
 }
+
+for (cb in covariates_cont) {
+  seedchange <- 112231 + j
+  set.seed(seedchange)
+  Minlab <- 0
+  Maxlab <- 5000
+  data[, cov := runif(.N, min = Minlab, max = Maxlab)]
+  seedchange <- 112302 + j
+  set.seed(seedchange)
+  data[, random := runif(.N)]
+  data[random > .5, cov := NA_real_]
+  setnames(data,"cov",cb)
+  j <- j + 1
+}
+
+for (cb in covariates_cat) {
+  seedchange <- 1131 + j
+  set.seed(seedchange)
+  thisvalues <- c("morte", "uscita", "fine studio")
+  data[, cov := sample(thisvalues, .N, replace = T)]
+  seedchange <- 1135 + j
+  set.seed(seedchange)
+  data[, random := runif(.N)]
+  data[random > .5, cov := NA_real_]
+  setnames(data,"cov",cb)
+}
+
 
 data[,random := NULL]
 
