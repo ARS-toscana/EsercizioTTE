@@ -14,7 +14,7 @@ print('CREATE D4_esp_comp_pesi')
 # assign directories and other parameters used in this step
 
 if (TEST){
-  testname <- "test_01_D4_esp_comp_pesi"
+  testname <- "test_D4_esp_comp_pesi"
   thisdirinput <- file.path(dirtest,testname)
   thisdiroutput <- file.path(thisdirinput,"g_output")
   dir.create(thisdiroutput, showWarnings = F)
