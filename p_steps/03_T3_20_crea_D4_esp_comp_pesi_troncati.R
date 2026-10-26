@@ -19,24 +19,16 @@ library(data.table)
 
 if (TEST) {
   
-  testname <- "test_02_D4_esp_comp_pesi_troncati"
+  testname <- "test_D4_esp_comp_pesi_troncati"
   thisdirinput <- file.path(dirtest, testname)
   thisdiroutput <- file.path(thisdirinput, "g_output")
-  thisdirexp <- thisdiroutput
-  thisdiroutputplots <- thisdiroutput
-  thisdirsettings <- thisdirinput
-  thisdirchoice <- thisdirinput
-  
   dir.create(thisdiroutput, showWarnings = FALSE)
   
 } else {
   
   thisdirinput <- dirtemp
   thisdiroutput <- dirtemp
-  thisdiroutputplots <- direxp
-  thisdirexp <- direxp
-  thisdirsettings <- dirpargen
-  thisdirchoice <- dirparchoice
+  
 }
 
 #########################################
@@ -70,14 +62,14 @@ input <- as.data.table(input)
 # keep original columns
 cols_to_keep <- colnames(input)
   
-  # PAR_CHOICE_TRUNCATION <- fread(
-  #   file = file.path(thisdirchoice, "PAR_CHOICE_TRUNCATION.csv")
+  # input_troncatura <- fread(
+  #   file = file.path(thisdirchoice, "input_troncatura.csv")
   # )
   # 
-  # PAR_CHOICE_TRUNCATION <- PAR_CHOICE_TRUNCATION[ds == deap, ]
+  # input_troncatura <- input_troncatura[ds == deap, ]
   
 thisdirarchive <- file.path(thisdir, "p_parameters", "archive_parameters")
-PAR_CHOICE_TRUNCATION <- fread(file=file.path(thisdirarchive, "input_troncatura.csv"))
+input_troncatura <- fread(file=file.path(thisdirarchive, "input_troncatura.csv"))
 
 #########################################
 # check required columns
@@ -106,14 +98,14 @@ if (length(missing_cols) > 0) {
 # weight = IPTW recalculated from original ps among remaining subjects
 # truncated_weight = recalculated weight truncated at 1st/99th percentile
   
-trunc_par_exposed <- PAR_CHOICE_TRUNCATION[drug == "A"]
+trunc_par_exposed <- input_troncatura[drug == "A"]
   
 if (nrow(trunc_par_exposed) == 0) {
-  stop("No row found for exposure == 1 in PAR_CHOICE_TRUNCATION")
+  stop("No row found for drug == A in input_troncatura")
 }
   
 if (nrow(trunc_par_exposed) > 1) {
-  stop("More than one row found for drug == A in PAR_CHOICE_TRUNCATION")
+  stop("More than one row found for drug == A in input_troncatura")
 }
   
 #########################################
@@ -231,7 +223,7 @@ input <- input[, ..keep_cols]
   
 outputfile <- input
   
-nameoutput <- paste0("D4_esp_comp_pesi_troncati_trimmed", suffix)
+nameoutput <- "D4_esp_comp_pesi_troncati_trimmed"
   
 assign(nameoutput, outputfile)
   
