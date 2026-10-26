@@ -1,5 +1,3 @@
-ds,lower_limit,upper_limit,drug
-BIFAP,,,B
-BIFAP,,,A
-CPRD,,99,B
-CPRD,,99,A
+lower_limit;upper_limit;drug
+;99;B
+;99;A
