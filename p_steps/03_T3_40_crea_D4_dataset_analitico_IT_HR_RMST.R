@@ -1,155 +1,64 @@
 ############################################################
 #                                                          #
-####   CREATE D4_ANALYTICAL_DATASET_HR_RMST_TP                              ####
-# 
+#      CREATE D4_dataset_analitico_IR_HR_RMST              #
+#                                                          #
 #                                                          #
 ############################################################
 
-# author: Rosa Gini
+# author: Rosa Gini, Sabrina Giometto, Elena Ferrati
 
-# 1.1. 18 Sep 2026
-
-# non-administrative causes of censoring that enter the extreme scenarios TP are only 8 now
-
-# 1.0 19 Jul 2026
+# v 0.1 02 Nov 2026
 
 #########################################
 # assign input and output directories
 
 if (TEST){
-  testname <- "test_34_D4_ANALYTICAL_DATASET_HR_RMST_TP"
+  testname <- "test_D4_dataset_analitico_IR_HR_RMST"
   thisdirinput <- file.path(dirtest,testname)
   thisdiroutput <- file.path(dirtest,testname,"g_output/")
-  thisdirexp <- thisdiroutput
-  thisdirsettings <- thisdirinput
   dir.create(thisdiroutput, showWarnings = F)
 }else{
   thisdirinput <- dirtemp
   thisdiroutput <- dirtemp
-  thisdirsettings <- dirpargen
-  thisdirexp <- direxp
 }
 
 #########################################
 # load input datasets
 
-print('CREATE D4_ANALYTICAL_DATASET_HR_RMST_TP')
+print('CREATE D4_dataset_analitico_IR_HR_RMST')
 
-# from settings: create the list of subpopulations
-settings <- readRDS(file.path(thisdirsettings,"SETTINGS.rds"))
-thissubpopulations <- unique(settings[,.(subpop)])
-thissubpopulations <- unlist(strsplit(trimws(thissubpopulations), " +"))
+D4_esp_comp_pesi_troncati_trimmed <- readRDS(file.path(thisdirinput,paste0("D4_esp_comp_pesi_troncati_trimmed.rds")))
 
-ds <- settings$ds
-recommended_end_date <- settings$recommended_end_date
-study_exit_date <- settings$study_period_end_date
+#################################
+# start
+
+processing <- readRDS(file.path(thisdirinput, "D4_follow_up.rds"))
 
 
-# use the parameter file SUBPOP and the function create_selection_rules_for_subpopulations to store the selection rule associated to each subpopulation. we handle the case when the parameter file does not exist (for example in some tests)
-filesubpoppar <- file.path(thisdirsettings,"SUBPOP.rds")
-if (file.exists(filesubpoppar)) {
-  thisexcludemeaning <- create_selection_rules_for_subpopulations(filesubpoppar,thissubpopulations)
-}else{
-  thisexcludemeaning <- list()
-  for (subpop in thissubpopulations) thisexcludemeaning[[subpop]] <- ""
-}
+# evento
+processing[, evento := fifelse(causa_censura==1 & data_outcome <= data_censura, 1, 0)]
 
+# fup
+processing[, tempo_evento := as.numeric(tempo_censura)]
 
-subpop <- "all"
+# merge con coorte in studio con pesi
+analytical_dataset <- merge(processing, D4_esp_comp_pesi_troncati_trimmed[, .(person_id, weight, truncated_weight)], by = "person_id")
 
-for (subpop in thissubpopulations) { 
-  suffix <- fifelse(subpop == "all","",paste0("_",subpop))
-  print(suffix)
-  
-  #################################
-  # start
-  
-  processing <- readRDS(file.path(thisdirinput,paste0("D4_FUP",suffix,".rds")))
+#########################################
+# cleaning
+ 
+tokeep <-  c("person_id", "esposizione", "evento", "tempo_evento", "weight", "truncated_weight") 
+ 
+analytical_dataset <- analytical_dataset[,..tokeep]
+ 
+ 
+#########################################
+# save
 
-  
-  # E1_outcome
-  
-  processing[, E1_outcome := fifelse(!is.na(outcome_date) & outcome_date <= censoring_date_E1,1,0)]
-  
-  # E1_fup
-  
-  processing[, E1_fup := as.numeric(fup_days_E1)]
-  
-  # E2a_outcome
+outputfile <- analytical_dataset
 
-  processing[, E2a_outcome := fifelse(!is.na(outcome_date) & outcome_date <= censoring_date_E1,1,0)]
+nameoutput <- paste0("D4_dataset_analitico_IR_HR_RMST")
 
-  # E2a_fup
-
-  processing[, E2a_fup := E1_fup]
-  
-  # E2b_outcome
-  
-  processing[, E2b_outcome := fifelse(!is.na(outcome_date) & outcome_date <= censoring_date_E2b,1,0)]
-
-  # E2b_fup
-  
-  processing[, E2b_fup := as.numeric(fup_days_E2b)]
-  
-  # E3_outcome
-
-  processing[, E3_outcome := E1_outcome]
-  
-  
-  # E3_fup
-  
-  processing[, E3_fup := as.numeric(fup_days_E3)] 
-  
-  # TP1_outcome
-  
-  processing[, TP1_outcome := fifelse(E1_outcome == 1 | (exposure == 0 & cause_of_censoring_E1 %in% c(8) ),1,0)]
-  
-  # TP1_fup
-  
-  processing[, TP1_fup := as.numeric(censoring_date_excluding_intercurring_E1 - t0)]
-  
-  # TP2_outcome
-
-  processing[, TP2_outcome := fifelse(E1_outcome == 1 | (exposure == 1 & cause_of_censoring_E1 %in% c(8) ),1,0)]
-  
-  # TP2_fup
-
-  processing[, TP2_fup := TP1_fup]
-  
-  # TP3_outcome
-  
-  processing[, TP3_outcome := fifelse(E1_outcome == 1 ,1,0)]
-  
-  # TP3_fup
-
-  processing[, TP3_fup := TP1_fup]
-  
-  # TP4_outcome
-  
-  processing[, TP4_outcome := fifelse(E1_outcome == 1 | cause_of_censoring_E1 %in% c(2, 6, 7, 8), 1, 0)]
-  
-  # TP4_fup
-  
-  processing[, TP4_fup := TP1_fup]
-  
-    
-   #########################################
-   # cleaning
+assign(nameoutput, outputfile)
+saveRDS(outputfile, file = file.path(thisdiroutput, paste0(nameoutput, ".rds")))
    
-   tokeep <-  c("person_id", "exposure", "E1_outcome", "E1_fup", "E2a_outcome", "E2a_fup", "E2b_outcome", "E2b_fup", "E3_outcome", "E3_fup", "TP1_outcome", "TP1_fup", "TP2_outcome", "TP2_fup", "TP3_outcome", "TP3_fup", "TP4_outcome", "TP4_fup") #, "matched_set_id", "E2_outcome", "E2_fup"
-   
-   processing <- processing[,..tokeep]
-   
-   
-   #########################################
-   # save
-   
-   outputfile <- processing
-   
-   nameoutput <- paste0("D4_ANALYTICAL_DATASET_HR_RMST_TP")
-   nameoutputext <- paste0(nameoutput,suffix,".rds")
-   assign(nameoutput, outputfile)
-   saveRDS(outputfile, file = file.path(thisdiroutput, nameoutputext))
-   
-
-   }
