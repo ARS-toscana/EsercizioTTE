@@ -23,107 +23,114 @@ library(data.table)
 if (!require("lubridate")) install.packages("lubridate")
 library(lubridate)
 
-#######################################
-# PARAMETERS
+library(survival)
+set.seed(123)
+N<-5000
 
-# set # of persons
-Npersons <- 5000
+drug <- sample(c("A", "B"), size=N, replace = TRUE, prob = c(0.5, 0.5))
+drug <- ifelse(drug == "A", 1, 0)
 
-# input metadata
-thisdirarchive <- file.path(thisdir, "..", "..", "p_parameters", "archive_parameters")
+#parametri per tempo_censura
+b0_cens<-2.8
+b1_cens<-0.1
+sig_cens<-0.5
 
-# list covariates
-parameters_this_step <- as.data.table(unique(readxl::read_excel(file.path(thisdirarchive,"codebooks",paste0("D4_esp_comp_baseline_pesi.xlsx")),1)))
+#parametri per tempo_outcome_1
+b0_out_1<-5.5
+b1_out_1<--0.6
+sig_out_1<-0.7
 
-thiscovariates_bin <- unlist(parameters_this_step[parameter == "covar_bin",.(value)])
-
-# covariates_binary <- paste0(thiscovariates_bin,"_at_t0")
-covariates_binary <- thiscovariates_bin
-
-
-# set probability of exposure
-probexposure = 0.55
-
-
-#######################################
-# DATA GENERATION
-
-# all variables
-list_variables <- c("person_id", "date_first", "op_start", "op_end", "year_first", "ASL", "age", "drug", covariates_binary)
+# #parametri per tempo_outcome_0
+# b0_out_0<-2.5
+# b1_out_0<-1.2
+# sig_out_0<-0.3
 
 
-# create base 
-data <- data.table::data.table(person_id = 1:Npersons)
+# #parametri per tempo_causa_<j> (es due cause j=1 e j=2)
+# b0_c1<-2.5; b1_c1<-0.0; sig_c1<-0.6
+# b0_c2<-2.6; b1_c2<-0.2; sig_c2<-0.8
+# 
+# #parametri per tempo_interruzione
+# b0_int<-1.8
+# b1_int<--0.6
+# sig_int<-0.9
+# 
+# #parametri per tempo_switch
+# b0_sw<-1.9
+# b1_sw<-0.3
+# sig_sw<-0.85
 
-# person_id 
-data[,person_id := paste0("000000",as.character(seq_len(.N)))]
-data[, person_id := paste0("P",substr(person_id, nchar(person_id) - 6, nchar(person_id)))]
+#modello AFT Log_Normale
+# simulazione <- function(b0, b1, trt, sigma) {
+#   epsilon <- rnorm(length(trt), mean = 0, sd = 1)
+#   exp(b0 + (b1 * trt) + (sigma * epsilon))
+# }
+# 
+# df_simulato <- data.frame(
+#   id = 1:N,
+#   trattamento = drug ,
+#   tempo_censura      = simulazione(b0_cens, b1_cens, drug, sig_cens),
+#   tempo_outcome      = simulazione(b0_out,  b1_out,  drug, sig_out)
+# )
 
-# date_first
-set.seed(1351)
-data[, date_first := sample(seq(study_start_date, study_end_date, by = "day"),
-                            .N, replace = TRUE)]
-
-# op start and end
-set.seed(523634)
-birth_year_list <- c(1915,1925,1935,1945,1955)
-probyear = c(.01,.1,.2,.5)
-totprob = sum(probyear)
-probyear = c(probyear, 1 - totprob)
-data[, birth_year := sample(birth_year_list, Npersons, replace = TRUE, prob = probyear)]
-
-set.seed(54632)
-data[, random := round(runif(.N, min = 1, max = date_first - 365 - dmy(paste0("0101",as.character(birth_year)))))]
-data[, op_start  := as.Date( date_first - random)]
-data[, date_first := pmax(date_first, dmy(paste0("0101",as.character(birth_year))))]
-set.seed(14632)
-data[, random := round(rpois(.N, lambda = 5000))]
-data[, op_end := pmin(date_first + random, study_end_date)]
-data[,random := NULL]
-
-# year_first
-data[, year_first:=year(date_first)]
-
-# exposure
-set.seed(1252)
-data[, drug := rbinom(.N, size = 1, prob = probexposure)]
-data[, drug:=ifelse(drug==1, "A", "B")]
-
-# ASL
-data[, ASL:=sample(c("CE", "NO", "SE"), Npersons, replace = TRUE, 
-                   prob = c(rep(0.33, 3)))]
-
-# age at date_first
-data[, age := year(date_first) - birth_year]
-data[,birth_year := NULL]
-
-
-# covariates at date_first
-
-j <- 1
-for (cb in covariates_binary) {
-  seedchange <- 1111 + j
-  set.seed(seedchange)
-  cov <- seq(0,1)
-  probcov = runif(1, min = 0, max = 1)
-  totprob = sum(probcov)
-  probcov = c(probcov, 1 - totprob)
-  data[, cov := sample(cov, Npersons, replace = TRUE, prob = probcov)]
-  seedchange <- 112 + j
-  set.seed(seedchange)
-  data[, random := runif(.N)]
-  data[drug == "A" & random > .95, cov := 1]
-  setnames(data,"cov",cb)
-  j <- j + 1
+#modello Weibull
+simulazione <- function(b0, b1, trt, sigma) {
+  u <- runif(length(trt), min = 0, max = 1)
+  exp(b0 + (b1 * trt)) * (-log(u))^(sigma)
 }
 
+df_simulato <- data.frame(
+  id = 1:N,
+  drug = drug,
+  tempo_censura = simulazione(b0_cens, b1_cens, drug, sig_cens),
+  # tempo_outcome_0 = simulazione(b0_out_0, b1_out_0, drug, sig_out_0),
+  tempo_outcome_1 = simulazione(b0_out_1, b1_out_1, drug, sig_out_1)
+)
 
-data[,random := NULL]
 
-# keep variables
-data <- data[, ..list_variables]
+#verifica parametri su ogni variabile
+#tratto il tempo simulato come evento di interesse
 
-# save
-namedataset <- "D3_esp_comp_con_baseline"
+# fit_cens <- survreg(Surv(tempo_censura) ~ drug, data = df_simulato, dist = "lognormal")
+# print(summary(fit_cens))
+# 
+# fit_out <- survreg(Surv(tempo_outcome) ~ drug, data = df_simulato, dist = "lognormal")
+# print(summary(fit_out))
 
-saveRDS(data, file = paste0(thisdir, "/", namedataset,".rds"))
+# fit_c1 <- survreg(Surv(tempo_causa_1) ~ drug, data = df_simulato, dist = "lognormal")
+# print(summary(fit_c1))
+# 
+# fit_c2 <- survreg(Surv(tempo_causa_2) ~ drug, data = df_simulato, dist = "lognormal")
+# print(summary(fit_c2))
+# 
+# fit_int <- survreg(Surv(tempo_interruzione) ~ drug, data = df_simulato, dist = "lognormal")
+# print(summary(fit_int))
+# 
+# fit_sw <- survreg(Surv(tempo_switch) ~ drug, data = df_simulato, dist = "lognormal")
+# print(summary(fit_sw))
+
+fit_cens<-coxph(Surv(tempo_censura) ~ drug, data = df_simulato)
+fit_cens
+# fit_out_0<-coxph(Surv(tempo_outcome_0) ~ drug, data = df_simulato)
+# fit_out_0
+fit_out_1<-coxph(Surv(tempo_outcome_1) ~ drug, data = df_simulato)
+fit_out_1
+
+
+tempi <- as.matrix(df_simulato[, c("tempo_outcome_1", "tempo_censura")])
+df_simulato$tempo_fu <- do.call(pmin, as.data.frame(tempi))
+df_simulato$causa_fine  <- ifelse(df_simulato$tempo_outcome_1 <= df_simulato$tempo_censura, "outcome", "censura")
+
+df_simulato$status_evento <- ifelse(df_simulato$causa_fine == "outcome", 1, 0)
+
+# fit_oss <- function(causa) {
+#   ev <- as.integer(df_simulato$causa_fine == causa)
+#   survreg(Surv(tempo_fu, ev) ~ drug, data = df_simulato, dist = "lognormal")
+# }
+# fit_out_oss <- fit_oss("outcome")
+# c(coef(fit_out_oss), sigma = fit_out_oss$scale)
+
+table(df_simulato$causa_fine)
+fit_cox_outcome<-coxph(Surv(tempo_fu, status_evento) ~ drug, data = df_simulato)
+fit_cox_outcome
+hr <- exp(coef(fit_cox_outcome))
