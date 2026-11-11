@@ -5,7 +5,7 @@
 #########################################
 
 if (TEST){
-  testname <- "test_D5_Table_S1"
+  testname <- "test_D5_Tab_1"
   thisdirinput <- file.path(dirtest,testname)
   thisdiroutput <- file.path(dirtest,testname,"g_output")
   dir.create(thisdiroutput, showWarnings = F)
@@ -63,6 +63,6 @@ for (i in var_selection) {
   
 
 # salvataggio
-saveRDS(D5_attrition, file = paste0(thisdiroutput, "/D5_Table_S1_attrition.rds"))
-write.csv(D5_attrition, file = paste0(thisdiroutput, "/D5_Table_S1_attrition.csv"))
+saveRDS(D5_attrition, file = paste0(thisdiroutput, "/D5_Tab_1_attrition.rds"))
+write.csv(D5_attrition, file = paste0(thisdiroutput, "/D5_Tab_1_attrition.csv"))
   
