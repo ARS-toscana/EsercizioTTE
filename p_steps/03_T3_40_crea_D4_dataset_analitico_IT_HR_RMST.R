@@ -36,7 +36,8 @@ processing <- readRDS(file.path(thisdirinput, "D4_follow_up.rds"))
 
 
 # evento
-processing[, evento := fifelse(causa_censura==1 & data_outcome <= data_censura, 1, 0)]
+#processing[, evento := fifelse(causa_censura==1 & data_outcome <= data_censura, 1, 0)]
+processing[, evento:= fifelse(causa_censura==1, 1, 0)]
 
 # fup
 processing[, tempo_evento := as.numeric(tempo_censura)]
@@ -47,7 +48,7 @@ analytical_dataset <- merge(processing, D4_esp_comp_pesi_troncati_trimmed[, .(pe
 #########################################
 # cleaning
  
-tokeep <-  c("person_id", "esposizione", "evento", "tempo_evento", "weight", "truncated_weight") 
+tokeep <-  c("person_id", "drug", "evento", "tempo_evento", "weight", "truncated_weight") 
  
 analytical_dataset <- analytical_dataset[,..tokeep]
  
