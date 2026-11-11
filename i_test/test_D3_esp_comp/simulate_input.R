@@ -1,5 +1,5 @@
 ##############################################
-# simulate input for 03_T3_10_crea_D4_esp_comp_pesi
+# simulate input for 03_T3_10_crea_D3_esp_comp
 
 # author: Rosa Gini, Olga Paoletti, Claudia Bartolini, Sabrina Giometto, Elena Ferrati
 
