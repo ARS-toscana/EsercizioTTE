@@ -9,9 +9,7 @@ var_selection <- c("sel_data_incomplete",
                    "sel_no_drug",
                    "sel_no_drug_during_obs_period_correct_age",
                    "sel_no_lookback",
-                   "sel_no_ASL", 
-                   "is_in_study",
-                   "user_type")
+                   "is_in_study")
 
 # names of variables
 
