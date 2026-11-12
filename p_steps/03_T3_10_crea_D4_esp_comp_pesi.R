@@ -39,7 +39,11 @@ input <- readRDS(file.path(thisdirinput,paste0("D3_esp_comp_con_baseline.rds")))
 #########################################
 # start_processing
 
-to_keep <- c("drug", "age", covariate_at_t0)
+# creazione esposizione e t0
+input[, `:=`(exposure = ifelse(drug=="A", 1, 0),
+             t0 = date_first)]
+
+to_keep <- c("exposure", "age", covariate_at_t0)
 
 variables <- input[,..to_keep]
 
@@ -59,7 +63,7 @@ const_cols <- sapply(variables, function(x) {
 variables_clean <- variables[, !const_cols, with = FALSE]
 
 #logistic model
-model <- glm(drug ~ ., 
+model <- glm(exposure ~ ., 
              data = variables_clean,  
              family = binomial(link="logit"))
 
@@ -95,7 +99,7 @@ model_vars <- attr(model$terms, "term.labels")
 
 # assign each coefficient to its origin variable
 match_var <- function(cn) {
-  browser()
+  # browser()
   if (cn == "(Intercept)") return("(Intercept)")
   matches <- model_vars[sapply(model_vars, function(v) startsWith(cn, v))]
   if (length(matches) == 0) return(NA_character_)
@@ -121,11 +125,11 @@ saveRDS(or_table, file = or_file)
 #stabilized weights
 
 # marginal probability of treatment
-p_treated <- mean(input$drug == "A", na.rm = TRUE)
+p_treated <- mean(input$exposure == 1, na.rm = TRUE)
 
 # stabilized weights
 input[, weight := ifelse(
-  drug == "A",
+  exposure == 1,
   p_treated/ps,
   (1 - p_treated) / (1 - ps)
 )]
@@ -135,8 +139,8 @@ input[, weight := ifelse(
 # clean
 
 listvartokeep <- c("person_id",
-                   "date_first",
-                   "drug",
+                   "t0",
+                   "exposure",
                    "age",
                    covariate_at_t0,
                    "ps",

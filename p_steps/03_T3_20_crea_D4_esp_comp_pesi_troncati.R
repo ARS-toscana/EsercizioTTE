@@ -74,7 +74,7 @@ input_troncatura <- fread(file=file.path(thisdirarchive, "input_troncatura.csv")
 #########################################
 # check required columns
   
-required_cols <- c("person_id", "date_first", "drug", "ps")
+required_cols <- c("person_id", "t0", "exposure", "ps")
   
 missing_cols <- setdiff(required_cols, names(input))
   
@@ -116,7 +116,7 @@ ps_lower_exposed <- NA_real_
 if (!is.na(trunc_par_exposed$lower_limit)) {
     
   ps_lower_exposed <- quantile(
-    input[drug == "A", ps],
+    input[exposure == 1, ps],
     probs = trunc_par_exposed$lower_limit / 100,
     na.rm = TRUE
   )
@@ -130,7 +130,7 @@ ps_upper_exposed <- NA_real_
 if (!is.na(trunc_par_exposed$upper_limit)) {
     
   ps_upper_exposed <- quantile(
-    input[drug == "A", ps],
+    input[exposure == 1, ps],
     probs = trunc_par_exposed$upper_limit / 100,
     na.rm = TRUE
   )
@@ -167,14 +167,14 @@ input[, truncated_ps := fifelse(
 input[, weight := 0]
   
 p_treated_trimmed <- mean(
-  input[in_overlap_tmp == 1L, drug == "A"],
+  input[in_overlap_tmp == 1L, exposure == 1],
   na.rm = TRUE
 )
   
 input[
   in_overlap_tmp == 1L,
   weight := fifelse(
-    drug == "A",
+    exposure == 1,
     p_treated_trimmed / ps,
     (1 - p_treated_trimmed) / (1 - ps)
   )
