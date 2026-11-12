@@ -6,10 +6,10 @@
 # assign input and output directories
 
 if (TEST){
-  testname <- "test_createconceptsetdatasets"
-  thisdirinput <- file.path(dirtest,testname)
-  thisdiroutput <- file.path(dirtest,testname,"g_output")
-  dir.create(thisdiroutput, showWarnings = F)
+  # testname <- "test_createconceptsetdatasets"
+  # thisdirinput <- file.path(dirtest,testname)
+  # thisdiroutput <- file.path(dirtest,testname,"g_output")
+  # dir.create(thisdiroutput, showWarnings = F)
 }else{
   thisdirinput <- dirinput
   thisdiroutput <- dirtemp

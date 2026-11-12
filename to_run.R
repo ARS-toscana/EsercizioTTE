@@ -16,7 +16,6 @@ thisdir <- setwd(dirname(rstudioapi::getSourceEditorContext()$path))
 TEST <- T
 
 dirinput <- paste0(thisdir,"/i_input/")
-dirinput <- ""
 
 ####################
 # load parameters
