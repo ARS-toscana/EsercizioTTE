@@ -31,13 +31,9 @@ source(paste0(thisdir,"/p_parameters/6_parameters_study.R"))
 
 # ######################################
 # # run scripts
-# source(paste0(thisdir,"/p_steps/01_T2_10_create_conceptsets.R"))
-# source(paste0(thisdir,"/p_steps/01_T2_20_create_spells.R"))
-# source(paste0(thisdir,"/p_steps/01_T2_30_create_persons.R"))
-# source(paste0(thisdir,"/p_steps/02_T2_10_create_D3_ASL.R"))
-# source(paste0(thisdir,"/p_steps/02_T2_20_create_D3_selezione_coorte.R"))
-# source(paste0(thisdir,"/p_steps/02_T2_30_create_D3_episodi_farmaci_in_studio.R"))
-# source(paste0(thisdir,"/p_steps/02_T2_40_create_D3_coorte_con_caratterizzazione.R"))
+# source(paste0(thisdir,"/p_steps/01_T2_10_crea_dataset_matching_liste_codici.R"))
+
+
 # source(paste0(thisdir,"/p_steps/.R"))
 # 
 # 
