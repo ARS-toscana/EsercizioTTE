@@ -32,6 +32,8 @@ source(paste0(thisdir,"/p_parameters/6_parameters_study.R"))
 # ######################################
 # # run scripts
 # source(paste0(thisdir,"/p_steps/01_T2_10_crea_dataset_matching_liste_codici.R"))
+# source(paste0(thisdir,"/p_steps/01_T2_20_crea_D3_individui.R"))
+# source(paste0(thisdir,"/p_steps/.R"))
 
 
 # source(paste0(thisdir,"/p_steps/.R"))

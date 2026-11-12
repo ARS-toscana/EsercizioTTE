@@ -6,7 +6,7 @@
 # assign input and output directories
 
 if (TEST){
-  testname <- "test_D3_PERSONS"
+  testname <- "test_D3_individui"
   thisdirinput <- file.path(dirtest,testname)
   thisdiroutput <- file.path(dirtest,testname,"g_output")
   dir.create(thisdiroutput, showWarnings = F)
@@ -15,7 +15,11 @@ if (TEST){
   thisdiroutput <- dirtemp
 }
 
+# carica dati
+
 processing <- fread(file.path(thisdirinput,"ANAGRAFE_ASSISTITI.csv"))
+
+# assegna formato data
 
 date_cols <- c("data_inizioass", "data_fineass", "datadec", "datanas")
 
@@ -24,27 +28,40 @@ for (datevar in date_cols) {
   processing[, (datevar) := ymd(get(datevar))]
 }
 
+# tiene info più recente
+
 setorderv(processing, c("id", "data_inizioass"))
 
 processing <- processing[, is_the_most_recent_info := as.integer(seq(.N) == .N), by = id]
 
 processing <- processing[is_the_most_recent_info == 1, ]
 
+# dati mancanti
+
+processing[, dati_incompleti := 0]
+processing[is.na(sesso) | (sesso != 1 & sesso != 2), dati_incompleti := 1]
+processing[is.na(datanas) | (datanas < ymd("18900101")), dati_incompleti := 1]
+processing[!is.na(datadec) & dati_incompleti == 0 & datadec < datanas, dati_incompleti := 1]
+
+# person_id
+
 setnames(processing,old = c("id"),new = c("person_id"))
 
-processing <- processing[sesso == 1, gender := "M"]
-processing <- processing[sesso == 2, gender := "F"]
+# gender
 
-processing[, birth_date := as.Date(datanas)]
-processing[, death_date := as.Date(datadec)]
+processing[dati_incompleti == 0, gender := sesso]
 
-processing[, birth_date_or_gender_invalid := fifelse( is.na(gender) | is.na(birth_date), 1,0)]
+# birth_date
+
+processing[dati_incompleti == 0, birth_date := datanas]
+
+processing[dati_incompleti == 0, death_date := datadec]
 
 
 ################################
 # clean
 
-tokeep <- c("person_id", "gender", "birth_date","death_date", "birth_date_or_gender_invalid")
+tokeep <- c("person_id", "dati_incompleti","gender", "birth_date","death_date")
 
 processing <- processing[, ..tokeep]
 
@@ -59,7 +76,7 @@ setorderv(
 
 outputfile <- processing
 
-nameoutput <- "D3_PERSONS"
+nameoutput <- "D3_individui"
 nameoutputext <- paste0(nameoutput,".rds")
 assign(nameoutput, outputfile)
 saveRDS(outputfile, file = file.path(thisdiroutput, nameoutputext))

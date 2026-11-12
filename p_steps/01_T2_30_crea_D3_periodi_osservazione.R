@@ -6,7 +6,7 @@
 # assign input and output directories
 
 if (TEST){
-  testname <- "test_D3_OBSPERIODS"
+  testname <- "test_D3_periodi_di_osservazione"
   thisdirinput <- file.path(dirtest,testname)
   thisdiroutput <- file.path(dirtest,testname,"g_output")
   dir.create(thisdiroutput, showWarnings = F)

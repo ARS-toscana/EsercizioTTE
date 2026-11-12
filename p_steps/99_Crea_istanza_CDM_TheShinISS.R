@@ -167,8 +167,7 @@ setnames(data, "person_id", "id")
 
 # sesso
 
-set.seed(1234)
-data[, sesso := as.character(sample(1:2, .N, replace = TRUE, prob = c(.5,.5)))]
+data[, sesso := 1]
 
 # datanas
 
@@ -208,6 +207,8 @@ toadd[, numid := as.numeric(substr(id, 2, nchar(id)))]
 maxid <- max(toadd$numid)
 toadd[, random := runif(.N)]
 toadd <- toadd[ random < .5,] 
+set.seed(1234)
+data[, sesso := as.character(sample(1:2, .N, replace = TRUE, prob = c(.5,.5)))]
 set.seed(81323)
 toadd[, random := runif(.N)]
 toadd[ random > .1, datadec := NA_Date_] 
