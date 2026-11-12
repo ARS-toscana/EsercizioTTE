@@ -459,5 +459,5 @@ cols_to_keep <- c("person_id", "t0", "exposure", "age", covariates_binary,
 input <- input[,..cols_to_keep]
 
 nameoutput <- "D4_esp_comp_pesi_troncati_trimmed"
-saveRDS(data, file = paste0(thisdir, "/", namedataset,".rds"))
+saveRDS(input, file = paste0(thisdir, "/", nameoutput,".rds"))
 
