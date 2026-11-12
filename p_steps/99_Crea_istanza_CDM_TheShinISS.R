@@ -338,20 +338,34 @@ to_CDM <- rbind(to_CDM, data, fill = T)
 tab <- "sdo"
 
 data <- copy(to_CDM)[concept_id %in% concept_sets_of_our_study_diagnosis,]
+data <- data[.N < .8*.N,]
 setnames(data, "person_id","id")
 setnames(data, "date","data_a")
 data <- merge(data,code_concept_id_codsys_DT, by = c("concept_id"), allow.cartesian = T)
 data[,dia := code]
 data[, dia_col := 1]
-# data[,event_record_vocabulary := thiscodingsystemEVENTS]
-# data <- rbind(get(paste0(tab,"data_model")),data,fill =T)
-# tokeep <- names(get(paste0(tab,"data_model")))
-# data <- data[,..tokeep]
-# date_cols <- sapply(data, is.Date)
-# date_cols <- names(date_cols)[date_cols]
-# data[, (date_cols) := lapply(.SD, format, "%Y%m%d"), .SDcols = date_cols]
-# fwrite(data, file.path(dirversionCDM, paste0(paste0(tab,"_SD",labversion),".csv") ))
 data <- clean_and_save( data, tab)
+
+tab <- "exe"
+
+data <- copy(to_CDM)[concept_id %in% concept_sets_of_our_study_diagnosis,]
+data <- data[.N >= .8*.N & .N < .9*.N,]
+setnames(data, "person_id","id")
+setnames(data, "date","datai")
+data <- merge(data,code_concept_id_codsys_DT, by = c("concept_id"), allow.cartesian = T)
+data[,dia := code]
+data <- clean_and_save( data, tab)
+
+tab <- "ps"
+
+data <- copy(to_CDM)[concept_id %in% concept_sets_of_our_study_diagnosis,]
+data <- data[.N >= .9*.N ,]
+setnames(data, "person_id","id")
+setnames(data, "date","data_a")
+data <- merge(data,code_concept_id_codsys_DT, by = c("concept_id"), allow.cartesian = T)
+data[,dia := code]
+data <- clean_and_save( data, tab)
+
 
 
 # fed
