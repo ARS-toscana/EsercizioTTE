@@ -48,7 +48,7 @@ analytical_dataset <- merge(processing, D4_esp_comp_pesi_troncati_trimmed[, .(pe
 #########################################
 # cleaning
  
-tokeep <-  c("person_id", "drug", "evento", "tempo_evento", "weight", "truncated_weight") 
+tokeep <-  c("person_id", "exposure", "evento", "tempo_evento", "weight", "truncated_weight") 
  
 analytical_dataset <- analytical_dataset[,..tokeep]
  
