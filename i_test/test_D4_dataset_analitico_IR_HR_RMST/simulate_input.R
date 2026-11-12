@@ -348,10 +348,138 @@ smd <- function(x, g, w = rep(1, length(x))) {
 smd(data$metastatic, data$drug) # prima
 smd(data$metastatic, data$drug, data$weight) #dopo
 
+###pesi troncati
+cols_to_keep <- colnames(data)
+required_cols <- c("person_id", "date_first", "drug", "ps")
+
+missing_cols <- setdiff(required_cols, names(data))
+
+if (length(missing_cols) > 0) {
+  stop(sprintf(
+    "The following required columns are missing from input: %s",
+    paste(missing_cols, collapse = ", ")
+  ))
+}
+
+input_troncatura <- fread(file=file.path(thisdirarchive, "input_troncatura.csv"))
 
 
+trunc_par_exposed <- input_troncatura[drug == "A"]
 
-##
+if (nrow(trunc_par_exposed) == 0) {
+  stop("No row found for drug == A in input_troncatura")
+}
+
+if (nrow(trunc_par_exposed) > 1) {
+  stop("More than one row found for drug == A in input_troncatura")
+}
+
+ps_lower_exposed <- NA_real_
+
+if (!is.na(trunc_par_exposed$lower_limit)) {
+  
+  ps_lower_exposed <- quantile(
+    data[drug == "A", ps],
+    probs = trunc_par_exposed$lower_limit / 100,
+    na.rm = TRUE
+  )
+}
+
+ps_upper_exposed <- NA_real_
+
+if (!is.na(trunc_par_exposed$upper_limit)) {
+  
+  ps_upper_exposed <- quantile(
+    data[drug == "A", ps],
+    probs = trunc_par_exposed$upper_limit / 100,
+    na.rm = TRUE
+  )
+}
+
+#########################################
+# apply equipoise trimming
+
+data[, in_overlap_tmp := 1L]
+
+if (!is.na(ps_lower_exposed)) {
+  data[ps < ps_lower_exposed, in_overlap_tmp := 0L]
+}
+
+if (!is.na(ps_upper_exposed)) {
+  data[ps > ps_upper_exposed, in_overlap_tmp := 0L]
+}
+
+#########################################
+# create truncated_ps
+# outside overlap: 0
+# inside overlap: original ps
+
+data[, truncated_ps := fifelse(
+  in_overlap_tmp == 1L,
+  ps,
+  0
+)]
+
+#########################################
+# Calculate IPTW from the remaining subjects' PS
+# Existing weight is overwritten.
+
+data[, weight := 0]
+
+p_treated_trimmed <- mean(
+  data[in_overlap_tmp == 1L, drug == "A"],
+  na.rm = TRUE
+)
+
+data[
+  in_overlap_tmp == 1L,
+  weight := fifelse(
+    drug == "A",
+    p_treated_trimmed / ps,
+    (1 - p_treated_trimmed) / (1 - ps)
+  )
+]
+
+#########################################
+# Truncate resulting IPTW weights at 1st/99th percentile
+# among included subjects only
+
+data[, truncated_weight := 0]
+
+q_weight <- quantile(
+  data[in_overlap_tmp == 1L, weight],
+  probs = c(0.01, 0.99),
+  na.rm = TRUE
+)
+
+data[
+  in_overlap_tmp == 1L,
+  truncated_weight := pmin(
+    pmax(weight, q_weight[1]),
+    q_weight[2]
+  )
+]
+
+#########################################
+# cleaning
+# keep original columns plus:
+# truncated_ps
+# weight
+# truncated_weight
+#
+# weight is the newly calculated IPTW among remaining subjects.
+
+keep_cols <- unique(c(
+  cols_to_keep,
+  "truncated_ps",
+  "weight",
+  "truncated_weight"
+))
+
+input <- data[, ..keep_cols]
+
+
+## salvo D4_follow_up
 listvar <- c("person_id", "date_first", "drug", "interruzione",
              "switch", "morte", "causa_censura", "outcome", "tempo_censura", 
              "tempo_causa_1", "tempo_causa_2", "tempo_causa_3", "tempo_causa_4",
@@ -364,3 +492,13 @@ data<-data[,..listvar]
 namedataset <- "D4_follow_up"
 
 saveRDS(data, file = paste0(thisdir, "/", namedataset,".rds"))
+
+## salvo D4_esp_comp_pesi_troncati_trimmed
+cols_to_keep <- c("person_id", "date_first", "drug", "age", covariates_binary, 
+                  "ps", "weight", "truncated_ps", "truncated_weight")
+
+input <- input[,..cols_to_keep]
+
+nameoutput <- "D4_esp_comp_pesi_troncati_trimmed"
+saveRDS(data, file = paste0(thisdir, "/", namedataset,".rds"))
+
