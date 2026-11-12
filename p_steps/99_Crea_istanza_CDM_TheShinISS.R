@@ -338,7 +338,8 @@ to_CDM <- rbind(to_CDM, data, fill = T)
 tab <- "sdo"
 
 data <- copy(to_CDM)[concept_id %in% concept_sets_of_our_study_diagnosis,]
-data <- data[.N < .8*.N,]
+limit <- .8*data[,.N]
+data <- data[1: limit,]
 setnames(data, "person_id","id")
 setnames(data, "date","data_a")
 data <- merge(data,code_concept_id_codsys_DT, by = c("concept_id"), allow.cartesian = T)
@@ -349,7 +350,9 @@ data <- clean_and_save( data, tab)
 tab <- "exe"
 
 data <- copy(to_CDM)[concept_id %in% concept_sets_of_our_study_diagnosis,]
-data <- data[.N >= .8*.N & .N < .9*.N,]
+limit1 <- .8*data[,.N]
+limit2 <- .9*data[,.N]
+data <- data[limit1:limit2,]
 setnames(data, "person_id","id")
 setnames(data, "date","datai")
 data <- merge(data,code_concept_id_codsys_DT, by = c("concept_id"), allow.cartesian = T)
@@ -359,7 +362,9 @@ data <- clean_and_save( data, tab)
 tab <- "ps"
 
 data <- copy(to_CDM)[concept_id %in% concept_sets_of_our_study_diagnosis,]
-data <- data[.N >= .9*.N ,]
+limit1 <- .9*data[,.N]
+limit2 <- data[,.N]
+data <- data[limit1:limit2,]
 setnames(data, "person_id","id")
 setnames(data, "date","data_a")
 data <- merge(data,code_concept_id_codsys_DT, by = c("concept_id"), allow.cartesian = T)
