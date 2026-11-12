@@ -22,7 +22,8 @@ if (!require("data.table")) install.packages("data.table")
 library(data.table)
 if (!require("lubridate")) install.packages("lubridate")
 library(lubridate)
-
+if (!require("survival")) install.packages("survival")
+library(survival)
 
 
 #######################################
@@ -51,7 +52,7 @@ covariates_binary <- thiscovariates_bin
 # DATA GENERATION
 
 # all variables
-list_variables <- c("person_id", "date_first", "age", "drug", covariates_binary,
+list_variables <- c("person_id", "t0", "age", "exposure", covariates_binary,
                     "interruzione", "switch", "morte")
 
 # create base 
@@ -61,11 +62,11 @@ data <- data.table::data.table(person_id = 1:Npersons)
 data[,person_id := paste0("000000",as.character(seq_len(.N)))]
 data[, person_id := paste0("P",substr(person_id, nchar(person_id) - 6, nchar(person_id)))]
 
-# date_first
+# t0
 set.seed(1351)
-data[, date_first := sample(seq(study_start_date, study_end_date, by = "day"),
+data[, t0 := sample(seq(study_start_date, study_end_date, by = "day"),
                             .N, replace = TRUE)]
-# op start and end
+# anno di nascita
 set.seed(523634)
 birth_year_list <- c(1915,1925,1935,1945,1955)
 probyear = c(.01,.1,.2,.5)
@@ -74,36 +75,33 @@ probyear = c(probyear, 1 - totprob)
 data[, birth_year := sample(birth_year_list, Npersons, replace = TRUE, prob = probyear)]
 
 # set.seed(54632)
-# data[, random := round(runif(.N, min = 1, max = date_first - 365 - dmy(paste0("0101",as.character(birth_year)))))]
-# data[, op_start  := as.Date( date_first - random)]
-# data[, date_first := pmax(date_first, dmy(paste0("0101",as.character(birth_year))))]
+# data[, random := round(runif(.N, min = 1, max = t0 - 365 - dmy(paste0("0101",as.character(birth_year)))))]
+# data[, op_start  := as.Date( t0 - random)]
+# data[, t0 := pmax(t0, dmy(paste0("0101",as.character(birth_year))))]
 # set.seed(14632)
 # data[, random := round(rpois(.N, lambda = 900))]
-# data[, op_end := pmin(date_first + random, study_end_date)]
+# data[, op_end := pmin(t0 + random, study_end_date)]
 # data[,random := NULL]
 
 # year_first
-# data[, year_first:=year(date_first)]
+# data[, year_first:=year(t0)]
 
 # exposure
 # set.seed(1252)
-# # data[, drug := rbinom(.N, size = 1, prob = probexposure)]
-# # data[, drug:=ifelse(drug==1, "A", "B")]
+# # data[, exposure := rbinom(.N, size = 1, prob = probexposure)]
+# # data[, exposure:=ifelse(exposure==1, "A", "B")]
 # 
 # alpha0<--0.5
 # alpha1<-1.2
-# p_drug<-1/ (1+exp(-(alpha0+alpha1*data$metastatic)))
-# data[, drug := rbinom(.N, size=1, prob=p_drug)]
+# p_exposure<-1/ (1+exp(-(alpha0+alpha1*data$metastatic)))
+# data[, exposure := rbinom(.N, size=1, prob=p_exposure)]
 
-# # ASL
-# data[, ASL:=sample(c("CE", "NO", "SE"), Npersons, replace = TRUE, 
-#                    prob = c(rep(0.33, 3)))]
 
-# age at date_first
-data[, age := year(date_first) - birth_year]
+# età a t0
+data[, age := year(t0) - birth_year]
 data[,birth_year := NULL]
 
-# covariates at date_first
+# covariate a t0
 
 j <- 1
 for (cb in covariates_binary) {
@@ -117,22 +115,19 @@ for (cb in covariates_binary) {
   seedchange <- 112 + j
   set.seed(seedchange)
   data[, random := runif(.N)]
-  # data[drug == "A" & random > .95, cov := 1]
+  # data[exposure == "A" & random > .95, cov := 1]
   setnames(data,"cov",cb)
   j <- j + 1
 }
 data[,random := NULL]
 
-# exposure
+# esposizione dipendente da metastatic (modello logistico)
 set.seed(1252)
-# data[, drug := rbinom(.N, size = 1, prob = probexposure)]
-# data[, drug:=ifelse(drug==1, "A", "B")]
 
-#drug dipendente da metastatic (modello logistico)
-alpha0<--0.5
-alpha1<-1.2
-p_drug<-1/ (1+exp(-(alpha0+alpha1*data$metastatic)))
-data[, drug := rbinom(.N, size=1, prob=p_drug)]
+alpha0 <- -0.5
+alpha1 <- 1.2
+p_drug <- 1/ (1+exp(-(alpha0+alpha1*data$metastatic)))
+data[, exposure := rbinom(.N, size=1, prob=p_drug)]
 
 # interruzione
 set.seed(444)
@@ -140,19 +135,24 @@ data[, interruzione:= 1]
 
 # switch
 set.seed(148)
-data[, switch:= rbinom(.N, size = 1, prob = 0.3)]
+alpha0 <- -0.5
+alpha1 <- 1.2
+p_switch <- 1/ (1+exp(-(alpha0+alpha1*data$exposure)))
+data[, switch := rbinom(.N, size=1, prob=p_switch)]
 
 # morte
 set.seed(898)
-data[, morte:= rbinom(.N, size = 1, prob = 0.35)]
+alpha0 <- -0.5
+alpha1 <- 1.2
+p_morte <- 1/ (1+exp(-(alpha0+alpha1*data$metastatic)))
+data[, morte := rbinom(.N, size=1, prob=p_morte)]
 
-###
 
-to_keep <- c("drug", "age", covariates_binary, "interruzione", "switch", "morte")
-
+# filtro
+to_keep <- c("exposure", "age", covariates_binary, "interruzione", "switch", "morte")
 variables <- data[,..to_keep]
 
-
+# rimozione variabili costanti
 var <- setdiff(names(variables), "age")
 
 variables[, (var) := lapply(.SD, as.factor), .SDcols = var]
@@ -164,104 +164,76 @@ const_cols <- sapply(variables, function(x) {
 
 variables_clean <- variables[, !const_cols, with = FALSE]
 
-###
-library(data.table)
-library(survival)
+##################
+# simulazione tempi
 
-table(data$metastatic, data$drug)
+# controllo distribuzione
+data[, .N, .(metastatic, exposure)]
+data[, .N, .(metastatic, morte)]
+data[, .N, .(switch, exposure)]
 
-#parametri per tempo_causa_1 (morte)
-b0_out<-1.5
-b1_out<-0
-b2_out<--1.2 #effetto di metastatic su outcome
-b3_age<--0.04 #effetto di age su outcome
-sig_out<-0.7
+# parametri per tempo_causa_1 (morte)
+b0_out <- 1.5
+b1_out <- 0
+b2_out <- -1.2 #effetto di metastatic su outcome
+b3_age <- -0.04 #effetto di age su outcome
+sig_out <- 0.7
 
-b_scompcard<--0.45
-b_infart<--0.35
-b_ictus<--0.40
+b_scompcard <- -0.45
+b_infart <- -0.35
+b_ictus <- -0.40
 
-#tempo_causa_2 (fine_osservazione_persona)
-#data[, tempo_causa_2 := as.numeric(op_end-date_first)]
-b0_c2<-1.8; b1_c2<-0; sig_c2<-0.8
+# parametri per tempo_causa_2 (fine_osservazione_persona)
+b0_c2 <- 1.8
+b1_c2 <- 0
+sig_c2 <- 0.8
 
-#tempo_causa_3 (fine_finestra_studio)
-#data[, tempo_causa_3 := as.numeric(data_fine_finestra_studio-date_first)]
-b0_c3<-2.8; b1_c3<-0; sig_c3<-0.4
+# parametri per tempo_causa_3 (fine_finestra_studio)
 
-#tempo_causa_4 (fine_studio)
-# data[,tempo_causa_4 := as.numeric(data_fine_studio-date_first)]
-b0_c4<-1.3; b1_c4<-0; sig_c4<-0.65
+b0_c3 <- 2.8
+b1_c3 <- 0
+sig_c3 <- 0.4
 
-#parametri per tempo_interruzione
-b0_int<-1.8
-b1_int<--0
-b2_int<-0
-sig_int<-0.9
+# parametri per tempo_causa_4 (fine_studio)
+b0_c4 <- 1.3
+b1_c4 <- 0
+sig_c4 <- 0.65
 
-#parametri per tempo_switch
-b0_sw<-1.9
-b1_sw<-0.8
-b2_sw<-0
-sig_sw<-0.85
+# parametri per tempo_interruzione
+b0_int <- 1.8
+b1_int <- 0
+b2_int <- 0
+sig_int <- 0.9
 
-#modello AFT Log_Normale
-# simulazione <- function(b0, b1, trt, sigma) {
-#   epsilon <- rnorm(length(trt), mean = 0, sd = 1)
-#   exp(b0 + (b1 * trt) + (sigma * epsilon))
-# }
-# 
-# df_simulato <- data.frame(
-#   id = 1:N,
-#   trattamento = drug ,
-#   tempo_censura      = simulazione(b0_cens, b1_cens, drug, sig_cens),
-#   tempo_outcome      = simulazione(b0_out,  b1_out,  drug, sig_out)
-# )
+# parametri per tempo_switch
+b0_sw <- 1.9
+b1_sw <- 0.8
+b2_sw <- 0
+sig_sw <- 0.85
 
-#modello Weibull
+# generazione tempi con modello Weibull
 simulazione <- function(b0, b1, trt, b2, meta, b3, age, sigma) {
   u <- runif(length(trt), min = 0, max = 1)
   exp(b0 + (b1 * trt) + (b2*meta) + (b3*age)) * (-log(u))^(sigma)
 }
 
-# df_simulato <- data.frame(
-#   id = 1:N,
-#   metastatic = metastatic,
-#   drug = drug,
-#   tempo_censura = simulazione(b0_cens, b1_cens, drug, 0, rep(0,N), sig_cens),
-#   tempo_outcome_0 = simulazione(b0_out_0, b1_out_0, drug, sig_out_0),
-#   tempo_outcome = simulazione(b0_out, b1_out, drug, b2_out, metastatic, sig_out)
-# )
-
-data[, tempo_causa_1 := simulazione(b0_out, b1_out, drug, 1, (b2_out * metastatic) + 
+# tempi causa_censura_j
+data[, tempo_causa_1 := simulazione(b0_out, b1_out, exposure, 1, (b2_out * metastatic) + 
                                       (b3_age * (age - mean(age, na.rm = TRUE))) + 
                                       (b_scompcard * scompcard) + 
                                       (b_infart * infart) + 
                                       (b_ictus * ictus),0, 0, sig_out)]
-data[, tempo_causa_2 := simulazione(b0_c2, b1_c2, drug, 0, 0, 0, 0, sig_c2)]
-data[, tempo_causa_3 := simulazione(b0_c3, b1_c3, drug, 0, 0, 0, 0, sig_c3)]
-data[, tempo_causa_4 := simulazione(b0_c4, b1_c4, drug, 0, 0, 0, 0, sig_c4)]
-# data[, tempo_causa_2 := as.numeric(op_end-date_first)]
-# data[, tempo_causa_3 := as.numeric(data_fine_finestra_studio-date_first)]
-# data[,tempo_causa_4 := as.numeric(data_fine_studio-date_first)]
+data[, tempo_causa_2 := simulazione(b0_c2, b1_c2, exposure, 0, 0, 0, 0, sig_c2)]
+data[, tempo_causa_3 := simulazione(b0_c3, b1_c3, exposure, 0, 0, 0, 0, sig_c3)]
+data[, tempo_causa_4 := simulazione(b0_c4, b1_c4, exposure, 0, 0, 0, 0, sig_c4)]
 
-data[, tempo_interruzione := simulazione(b0_int, b1_int, drug, 0, 0, 0, 0, sig_int)]
-data[, tempo_switch := simulazione(b0_sw, b1_sw, drug, b2_sw, 0, 0, 0, sig_sw)]
+# tempi interruzione e switch
+data[, tempo_interruzione := simulazione(b0_int, b1_int, exposure, 0, 0, 0, 0, sig_int)]
+data[, tempo_switch := simulazione(b0_sw, b1_sw, exposure, b2_sw, 0, 0, 0, sig_sw)]
 
 data[, tempo_causa_1:= ifelse(morte ==1, tempo_causa_1, NA)]
 
-#date di outcome, interruzione e switch
-# data[, data_morte := ifelse(morte==1, date_first+round(tempo_outcome), NA)]
-# data[, data_morte := as.Date(data_morte, origin = "1970-01-01")]
-
-# data[, data_interruzione := ifelse(interruzione==1, date_first + round(tempo_interruzione), NA)]
-# data[, data_interruzione := as.Date(data_interruzione, origin = "1970-01-01")]
-
-# data[, data_switch := ifelse(switch==1, date_first+round(tempo_switch), NA)]
-# data[, data_switch := as.Date(data_switch, origin = "1970-01-01")]
-
-#creo tempo censura
-# data[, data_censura := pmin(data_morte, op_end, data_fine_finestra_studio, data_fine_studio)]
+# tempo censura
 data[, tempo_censura := pmin(tempo_causa_1, tempo_causa_2, tempo_causa_3, tempo_causa_4, na.rm = TRUE)]
 data[, causa_censura := fcase(tempo_censura == tempo_causa_1, 1, 
                               tempo_censura == tempo_causa_2, 2,
@@ -269,88 +241,33 @@ data[, causa_censura := fcase(tempo_censura == tempo_causa_1, 1,
                               tempo_censura == tempo_causa_4, 4, default = NA_integer_
      )]
 
+# outcome
 data[, outcome := ifelse(causa_censura == 1, 1, 0)]
 
-# data[, tempo_causa_1:= ifelse(morte ==1 & tempo_causa_1 <= tempo_censura, tempo_causa_1, NA)]
-data[, tempo_interruzione := ifelse(interruzione ==1 & tempo_interruzione <= tempo_censura, tempo_interruzione, NA)]
+# controllo che tempi interruzione e switch siano precedenti alla censura
 data[, interruzione_pre_censura := ifelse(interruzione == 1 & !is.na(tempo_interruzione) & tempo_interruzione <= tempo_censura, 1, 0)]
+data[, tempo_interruzione := ifelse(interruzione_pre_censura==1, tempo_interruzione, NA)]
 
-data[, tempo_switch := ifelse(switch==1 & tempo_switch <= tempo_censura, tempo_switch, NA)]
 data[, switch_pre_censura := ifelse(switch == 1 & !is.na(tempo_switch) & tempo_switch <= tempo_censura, 1, 0)]
+data[, tempo_switch := ifelse(switch_pre_censura==1, tempo_switch, NA)]
 
-#verifica parametri su ogni variabile
-#tratto il tempo simulato come evento di interesse
-
-# fit_cens<-coxph(Surv(tempo_censura) ~ drug, data = df_simulato)
-# fit_cens
-# fit_out_0<-coxph(Surv(tempo_outcome_0) ~ drug, data = df_simulato)
-# fit_out_0
-# fit_out<-coxph(Surv(tempo_outcome) ~ drug, data = df_simulato)
-# fit_out
-
-table(data$causa_censura)
-fit_grezzo<-coxph(Surv(tempo_censura, outcome) ~ drug, data = data)
-fit_grezzo
-fit_aggiustato <- coxph(Surv(tempo_censura, outcome) ~ drug + metastatic + age, data = data)
-fit_aggiustato
-hr_grezzo <- exp(coef(fit_grezzo))
-hr_grezzo
-hr_aggiustato <- exp(coef(fit_aggiustato))
-hr_aggiustato
-
-prop.table(table(data$metastatic, data$drug), margin=2)*100
-
-
-##############
-
-ps_model <- glm(
-  drug ~ ., 
-  data = variables_clean, 
-  family = binomial(link = "logit")
-)
+# stima PS
+ps_model <- glm(exposure ~ ., 
+                data = variables_clean, 
+                family = binomial(link = "logit"))
 
 data[, ps := ps_model$fitted.values]
 
-p_treated <- mean(data$drug == 1, na.rm = TRUE)
+p_treated <- mean(data$exposure == 1, na.rm = TRUE)
 
-data[, weight := ifelse(
-  drug == 1,
-  p_treated / ps,
-  (1 - p_treated) / (1 - ps)
-)]
+# calcolo pesi
+data[, weight := ifelse(exposure == 1,
+                        p_treated / ps,
+                        (1 - p_treated) / (1 - ps))]
 
-fit_cox_ipw <- coxph(
-  Surv(tempo_censura, outcome) ~ drug, 
-  data = data, 
-  weights = weight,
-  robust = TRUE
-)
-
-fit_cox_ipw
-
-hr_ipw <- exp(coef(fit_cox_ipw))
-hr_ipw
-
-weighted_table <- data[, .(
-  pct_metastatic_0 = sum(weight[metastatic == 0]) / sum(weight),
-  pct_metastatic_1 = sum(weight[metastatic == 1]) / sum(weight)
-), by = drug]
-
-weighted_table
-
-summary(data$weight)
-
-smd <- function(x, g, w = rep(1, length(x))) {
-  m1 <- weighted.mean(x[g == 1], w[g == 1])
-  m0 <- weighted.mean(x[g == 0], w[g == 0])
-  (m1 - m0) / sqrt((m1 * (1 - m1) + m0 * (1 - m0)) / 2)
-}
-smd(data$metastatic, data$drug) # prima
-smd(data$metastatic, data$drug, data$weight) #dopo
-
-###pesi troncati
+# trimming
 cols_to_keep <- colnames(data)
-required_cols <- c("person_id", "date_first", "drug", "ps")
+required_cols <- c("person_id", "t0", "exposure", "ps")
 
 missing_cols <- setdiff(required_cols, names(data))
 
@@ -379,7 +296,7 @@ ps_lower_exposed <- NA_real_
 if (!is.na(trunc_par_exposed$lower_limit)) {
   
   ps_lower_exposed <- quantile(
-    data[drug == "A", ps],
+    data[exposure == 1, ps],
     probs = trunc_par_exposed$lower_limit / 100,
     na.rm = TRUE
   )
@@ -390,13 +307,12 @@ ps_upper_exposed <- NA_real_
 if (!is.na(trunc_par_exposed$upper_limit)) {
   
   ps_upper_exposed <- quantile(
-    data[drug == "A", ps],
+    data[exposure == 1, ps],
     probs = trunc_par_exposed$upper_limit / 100,
     na.rm = TRUE
   )
 }
 
-#########################################
 # apply equipoise trimming
 
 data[, in_overlap_tmp := 1L]
@@ -427,14 +343,14 @@ data[, truncated_ps := fifelse(
 data[, weight := 0]
 
 p_treated_trimmed <- mean(
-  data[in_overlap_tmp == 1L, drug == "A"],
+  data[in_overlap_tmp == 1L, exposure == 1],
   na.rm = TRUE
 )
 
 data[
   in_overlap_tmp == 1L,
   weight := fifelse(
-    drug == "A",
+    exposure == 1,
     p_treated_trimmed / ps,
     (1 - p_treated_trimmed) / (1 - ps)
   )
@@ -460,6 +376,49 @@ data[
   )
 ]
 
+# verifica parametri su ogni variabile
+#tratto il tempo simulato come evento di interesse
+
+data[, .N, causa_censura]
+
+fit_grezzo <- coxph(Surv(tempo_censura, outcome) ~ exposure, 
+                    data = data)
+fit_grezzo
+
+prop.table(table(data$metastatic, data$exposure), margin=2)*100
+
+fit_cox_ipw <- coxph(Surv(tempo_censura, outcome) ~ exposure, 
+                     data = data, 
+                     weights = truncated_weight,
+                     robust = TRUE)
+
+fit_cox_ipw
+
+hr_grezzo <- exp(coef(fit_grezzo))
+hr_grezzo
+
+hr_ipw <- exp(coef(fit_cox_ipw))
+hr_ipw
+
+weighted_table <- data[, .(
+  pct_metastatic_0 = sum(weight[metastatic == 0]) / sum(weight),
+  pct_metastatic_1 = sum(weight[metastatic == 1]) / sum(weight)
+), by = exposure]
+
+weighted_table
+
+summary(data$weight)
+
+smd <- function(x, g, w = rep(1, length(x))) {
+  m1 <- weighted.mean(x[g == 1], w[g == 1])
+  m0 <- weighted.mean(x[g == 0], w[g == 0])
+  (m1 - m0) / sqrt((m1 * (1 - m1) + m0 * (1 - m0)) / 2)
+}
+smd(data$metastatic, data$exposure) # prima
+smd(data$metastatic, data$exposure, data$weight) #dopo
+
+
+
 #########################################
 # cleaning
 # keep original columns plus:
@@ -480,7 +439,7 @@ input <- data[, ..keep_cols]
 
 
 ## salvo D4_follow_up
-listvar <- c("person_id", "date_first", "drug", "interruzione",
+listvar <- c("person_id", "t0", "exposure", "interruzione",
              "switch", "morte", "causa_censura", "outcome", "tempo_censura", 
              "tempo_causa_1", "tempo_causa_2", "tempo_causa_3", "tempo_causa_4",
              "interruzione_pre_censura", "switch_pre_censura",
@@ -494,7 +453,7 @@ namedataset <- "D4_follow_up"
 saveRDS(data, file = paste0(thisdir, "/", namedataset,".rds"))
 
 ## salvo D4_esp_comp_pesi_troncati_trimmed
-cols_to_keep <- c("person_id", "date_first", "drug", "age", covariates_binary, 
+cols_to_keep <- c("person_id", "t0", "exposure", "age", covariates_binary, 
                   "ps", "weight", "truncated_ps", "truncated_weight")
 
 input <- input[,..cols_to_keep]
