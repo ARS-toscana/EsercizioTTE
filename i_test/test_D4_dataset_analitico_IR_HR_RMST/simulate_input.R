@@ -388,7 +388,7 @@ fit_grezzo
 prop.table(table(data$metastatic, data$exposure), margin=2)*100
 
 fit_cox_ipw <- coxph(Surv(tempo_censura, outcome) ~ exposure, 
-                     data = data, 
+                     data = data[in_overlap_tmp == 1], 
                      weights = truncated_weight,
                      robust = TRUE)
 
