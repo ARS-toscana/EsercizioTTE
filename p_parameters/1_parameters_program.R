@@ -1,51 +1,34 @@
-# #set directory with test data
+# set directories
 
 dirtest <- file.path(thisdir,"i_test")
-dircodelist <- file.path(thisdir,"p_parameters","archive_parameters")
 
-batch_size_countprevalence <- 20000000
+dirmacro <- paste0(thisdir,"/p_macro/")
+dirarchive <- paste0(thisdir,"/p_parameters/archive_parameters/")
+
+# dircodelist <- file.path(thisdir,"p_parameters","archive_parameters")
+
+
+# create and set other directories
 
 set_and_create_dir <- function(x) {
-#  x <- paste0(thisdir, x)
+  #  x <- paste0(thisdir, x)
   dir.create(file.path(x), showWarnings = F)
   return(x)
 }
 
-# # set other directories
-# diroutput <- set_and_create_dir("/g_output/")
-dirtemp <- set_and_create_dir("/g_intermediate/")
-# dirconceptsets <- set_and_create_dir("/g_intermediate/conceptset_datasets/")
-# # diritemsets <- set_and_create_dir("/g_intermediate/itemset_datasets/")
-# # dirpromptsets <- set_and_create_dir("/g_intermediate/promptset_datasets/")
-# direxp <- set_and_create_dir("/g_export/")
-# dirD6 <- set_and_create_dir("/g_export/Formatted tables/")
-# dirfig <- set_and_create_dir("/g_export/Figures/")
-# dirmacro <- set_and_create_dir("/p_macro/")
-# dirpargen <- set_and_create_dir("/g_parameters/")
-# # direvents <- set_and_create_dir("/g_intermediate/events/")
-# # dircomponents <- set_and_create_dir("/g_intermediate/components/")
-# # dirTD <- set_and_create_dir("/g_intermediate/TD/")
-
-
-diroutput <- set_and_create_dir(paste0(dirinput,"/g_output/"))
-dirtemp <- set_and_create_dir(paste0(dirinput,"/g_intermediate/"))
-dirconceptsets <- set_and_create_dir(paste0(dirinput,"/g_intermediate/conceptset_datasets/"))
-# diritemsets <- set_and_create_dir("/g_intermediate/itemset_datasets/")
-# dirpromptsets <- set_and_create_dir("/g_intermediate/promptset_datasets/")
+dirtemp <- set_and_create_dir(paste0(thisdir,"/g_intermediate/"))
+# diroutput <- set_and_create_dir(paste0(thisdir,"/g_output/"))
+# dirpargen <- set_and_create_dir(paste0(thisdir,"/g_parameters/"))
 direxp <- set_and_create_dir(paste0(thisdir,"/g_export/"))
-dirD6 <- set_and_create_dir(paste0(dirinput,"/g_export/Formatted tables/"))
+dirD6 <- set_and_create_dir(paste0(direxp,"/Formatted tables/"))
 dirfig <- set_and_create_dir(paste0(direxp,"/Figures/"))
-dirmacro <- paste0(thisdir,"/p_macro/")
-dirarchive <- paste0(thisdir,"/p_parameters/archive_parameters/")
-dirpargen <- set_and_create_dir(paste0(dirinput,"/g_parameters/"))
-# direvents <- set_and_create_dir("/g_intermediate/events/")
-# dircomponents <- set_and_create_dir("/g_intermediate/components/")
-# dirTD <- set_and_create_dir("/g_intermediate/TD/")
 
 
 rm(set_and_create_dir)
 
+######################
 # load packages
+
 read_library <- function(...) {
   x <- c(...)
   invisible(lapply(x, library, character.only = TRUE))
@@ -68,7 +51,10 @@ invisible(lapply(list.of.packages, require, character.only = T))
 
 rm(read_library, new.packages, list.of.packages)
 
+
+#################
 # load macros
+
 source(paste0(dirmacro, "CreateConceptSetDatasets_v21.R"))
 source(paste0(dirmacro, "CreateItemsetDatasets_v03.R"))
 source(paste0(dirmacro, "MergeFilterAndCollapse_v5.R"))
@@ -107,18 +93,17 @@ list_of_all_datasets <- c()
 # folder for generation of each dataset
 folders_to_be_tested <- c("")
 
-# ###################################################################
-# # CREATE EMPTY FILES
-# ###################################################################
-# 
-# files <- sub('\\.csv$', '', list.files(dirinput))
-# 
-# if (!any(str_detect(files,"^SURVEY_ID"))) {
-#   print("Creating empty SURVEY_ID since none were found")
-#   fwrite(data.table(person_id = character(0), survey_id = character(0), survey_date = character(0),
-#                     survey_meaning = character(0)),
-#          paste0(dirinput, "SURVEY_ID", ".csv"))
-# }
+###################################################################
+# CREATE EMPTY FILES
+###################################################################
+
+files <- sub('\\.csv$', '', list.files(dirinput))
+
+if (!any(str_detect(files,"^ps"))) {
+  print("Creating empty ps since none were found")
+  fwrite(data.table(id = character(0), data_a = character(0), dia = character(0)),
+         paste0(dirinput, "ps", ".csv"))
+}
 # 
 # if (!any(str_detect(files,"^SURVEY_OBSERVATIONS"))) {
 #   print("Creating empty SURVEY_OBSERVATIONS since none were found")
