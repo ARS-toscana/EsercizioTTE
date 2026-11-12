@@ -1,6 +1,6 @@
 # author: Rosa Gini
 
-# v 1.0 24 Nov 2024
+# v 1.0 12 Nov 2026
 
 #########################################
 # assign input and output directories
@@ -15,8 +15,9 @@ if (TEST){
   thisdiroutput <- dirtemp
 }
 
-ana <- fread(file.path(thisdirinput,"ANAGRAFE_ASSISTITI.csv"))
+# carica input
 
+ana <- fread(file.path(thisdirinput,"ANAGRAFE_ASSISTITI.csv"))
 
 date_cols <- c("data_inizioass", "data_fineass", "datadec", "datanas")
 
@@ -24,6 +25,12 @@ for (datevar in date_cols) {
   print(datevar)
   ana[, (datevar) := ymd(get(datevar))]
 }
+
+# rimuovi periodi assurdi
+
+ana <- ana[data_inizioass <= data_fineass,]
+
+# unisci periodi contigui
 
 processing <- CreateSpells(
   dataset = ana,
@@ -35,12 +42,23 @@ processing <- CreateSpells(
 
 rm(ana)
 
-# keep only the spells overlapping the study period
-processing <- processing[study_start_date <= exit_spell_category & study_end_date >= entry_spell_category ,]
+# sovrapposto_a_periodo_studio
 
+processing[ , sovrapposto_a_periodo_studio := fifelse(study_start_date <= exit_spell_category & study_end_date >= entry_spell_category,1,0)]
+
+
+# periodo_in_studio_individuale
 
 setorderv(processing, c("id", "entry_spell_category"))
 
+processing[, ord := seq_len(.N), by = "id"]
+processing[ sovrapposto_a_periodo_studio == 1, minord := min(ord), by = "id"]
+
+
+processing[ord == minord, periodo_in_studio_individuale := 1]
+processing[is.na(periodo_in_studio_individuale), periodo_in_studio_individuale := 0]
+
+# rinomina
 
 setnames(processing, old = c("id","entry_spell_category","exit_spell_category"),new = c("person_id","start_op", "end_op"))
 
@@ -48,7 +66,7 @@ setnames(processing, old = c("id","entry_spell_category","exit_spell_category"),
 ################################
 # clean
 
-tokeep <- c("person_id", "start_op", "end_op")
+tokeep <- c("person_id", "start_op", "end_op", "sovrapposto_a_periodo_studio", "periodo_in_studio_individuale")
 
 processing <- processing[, ..tokeep]
 
