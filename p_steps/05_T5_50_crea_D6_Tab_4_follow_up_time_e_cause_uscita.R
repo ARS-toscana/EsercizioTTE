@@ -98,16 +98,16 @@ j <- 0
 
 # row 0
 
-row_header_1 = c(row_header_1,
-                 ""
-)
-
-tab_nice[ stratum == 1, cell := "A"]
-tab_nice[ stratum == 0, cell := "B"]
-tab_nice[ stratum == 99, cell := "Totale"]
-setnames(tab_nice, "cell", paste0("cell_",j))
-
-j <- j + 1
+# row_header_1 = c(row_header_1,
+#                  ""
+# )
+# 
+# tab_nice[ stratum == 1, cell := "A"]
+# tab_nice[ stratum == 0, cell := "B"]
+# tab_nice[ stratum == 99, cell := "Totale"]
+# setnames(tab_nice, "cell", paste0("cell_",j))
+# 
+# j <- j + 1
 
 
 # row 1
@@ -221,7 +221,16 @@ tab_nice[, rownum := NULL]
 #########################################
 # colonne finali
 
-colorder <- c("row_header",setdiff(names(tab_nice),"row_header"))
+# colorder <- c("row_header",setdiff(names(tab_nice),"row_header"))
+# 
+# tab_nice <- tab_nice[, ..colorder]
+
+setnames(tab_nice,
+         old = c("99", "1", "0"),
+         new = c("Totale", "A", "B"),
+         skip_absent = TRUE)
+
+colorder <- intersect(c("row_header", "Totale", "A", "B"), names(tab_nice))
 
 tab_nice <- tab_nice[, ..colorder]
 
