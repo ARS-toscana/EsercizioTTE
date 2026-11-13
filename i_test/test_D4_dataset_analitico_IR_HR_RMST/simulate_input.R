@@ -123,27 +123,25 @@ data[,random := NULL]
 
 # esposizione dipendente da metastatic (modello logistico)
 set.seed(1252)
-
 alpha0 <- -0.5
 alpha1 <- 1.2
 p_drug <- 1/ (1+exp(-(alpha0+alpha1*data$metastatic)))
 data[, exposure := rbinom(.N, size=1, prob=p_drug)]
 
 # interruzione
-set.seed(444)
 data[, interruzione:= 1]
 
 # switch
 set.seed(148)
 alpha0 <- -0.5
-alpha1 <- 1.2
+alpha1 <- 1.4
 p_switch <- 1/ (1+exp(-(alpha0+alpha1*data$exposure)))
 data[, switch := rbinom(.N, size=1, prob=p_switch)]
 
 # morte
 set.seed(898)
 alpha0 <- -0.5
-alpha1 <- 1.2
+alpha1 <- 1.8
 p_morte <- 1/ (1+exp(-(alpha0+alpha1*data$metastatic)))
 data[, morte := rbinom(.N, size=1, prob=p_morte)]
 
@@ -173,43 +171,42 @@ data[, .N, .(metastatic, morte)]
 data[, .N, .(switch, exposure)]
 
 # parametri per tempo_causa_1 (morte)
-b0_out <- 1.5
+b0_out <- 7.3
 b1_out <- 0
 b2_out <- -1.2 #effetto di metastatic su outcome
 b3_age <- -0.04 #effetto di age su outcome
-sig_out <- 0.7
+sig_out <- 0.08
 
 b_scompcard <- -0.45
 b_infart <- -0.35
 b_ictus <- -0.40
 
 # parametri per tempo_causa_2 (fine_osservazione_persona)
-b0_c2 <- 1.8
+b0_c2 <- 7
 b1_c2 <- 0
-sig_c2 <- 0.8
+sig_c2 <- 0.4
 
 # parametri per tempo_causa_3 (fine_finestra_studio)
-
-b0_c3 <- 2.8
+b0_c3 <- 7.1
 b1_c3 <- 0
-sig_c3 <- 0.4
+sig_c3 <- 0.3
 
 # parametri per tempo_causa_4 (fine_studio)
-b0_c4 <- 1.3
+b0_c4 <- 7.2
 b1_c4 <- 0
-sig_c4 <- 0.65
+sig_c4 <- 0.45
 
 # parametri per tempo_interruzione
-b0_int <- 1.8
+b0_int <- 6.5
 b1_int <- 0
 b2_int <- 0
-sig_int <- 0.9
+sig_int <- 0.65
 
 # parametri per tempo_switch
-b0_sw <- 1.9
+b0_sw <- 5.8
 b1_sw <- 0.8
 b2_sw <- 0
-sig_sw <- 0.85
+sig_sw <- 0.65
 
 # generazione tempi con modello Weibull
 simulazione <- function(b0, b1, trt, b2, meta, b3, age, sigma) {
@@ -243,6 +240,14 @@ data[, causa_censura := fcase(tempo_censura == tempo_causa_1, 1,
 
 # outcome
 data[, outcome := ifelse(causa_censura == 1, 1, 0)]
+
+# tempo_causa_j che coincide con tempo_censura
+data[, `:=`(
+  tempo_causa_1 = ifelse(causa_censura == 1, tempo_causa_1, NA),
+  tempo_causa_2 = ifelse(causa_censura == 2, tempo_causa_2, NA),
+  tempo_causa_3 = ifelse(causa_censura == 3, tempo_causa_3, NA),
+  tempo_causa_4 = ifelse(causa_censura == 4, tempo_causa_4, NA)
+)]
 
 # controllo che tempi interruzione e switch siano precedenti alla censura
 data[, interruzione_pre_censura := ifelse(interruzione == 1 & !is.na(tempo_interruzione) & tempo_interruzione <= tempo_censura, 1, 0)]
