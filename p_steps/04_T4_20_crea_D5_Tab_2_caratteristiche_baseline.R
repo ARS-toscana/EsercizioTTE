@@ -29,9 +29,9 @@ D5_nocov <- data[, .(
 
 # creazione D5 con covariate binarie
 covariates_binary <- c("iperten", "cardioisc", "infart", "arit", "angi",
-                       "ictus", "tia", "scompcard", "dislip", "diab", "renal",
-                       "metastatic", "cortic", "antiang", "antitromb", "ipolip", 
-                       "antidiab", "bifosf", "conc_treat")
+                       "ictus", "tia", "scompcard", "dislip", "diab",
+                       "metastatic", "cortic", "antiang", "antitromb", 
+                       "bifosf")
 
 D5_cov <- NULL
 

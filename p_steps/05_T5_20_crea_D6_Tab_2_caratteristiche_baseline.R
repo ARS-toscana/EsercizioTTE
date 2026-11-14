@@ -138,10 +138,6 @@ j <- descriptive_N_perc(j, "dislip_")
 row_header_1 <- c(row_header_1, "Diabete mellito")
 j <- descriptive_N_perc(j, "diab_")
 
-# row 19
-row_header_1 <- c(row_header_1, "Insufficienza renale cronica")
-j <- descriptive_N_perc(j, "renal_") 
-
 # row 21
 row_header_1 <- c(row_header_1, "Farmaci concomitanti")
 j <- add_empty_row(j)
@@ -158,21 +154,9 @@ j <- descriptive_N_perc(j, "antiang_")
 row_header_1 <- c(row_header_1, "Antitrombotici")
 j <- descriptive_N_perc(j, "antitromb_") 
 
-# row 24
-row_header_1 <- c(row_header_1, "Ipolipemizzanti")
-j <- descriptive_N_perc(j, "ipolip_")
-
-# row 25
-row_header_1 <- c(row_header_1, "Antidiabetici")
-j <- descriptive_N_perc(j, "antidiab_")
-
 # row 26
 row_header_1 <- c(row_header_1, "Bifosfonati")
 j <- descriptive_N_perc(j, "bifosf_")
-
-# row 20
-row_header_1 <- c(row_header_1, "Trattamenti concomitanti")
-j <- descriptive_N_perc(j, "conc_treat_")
 
 #########################################
 # filtro celle

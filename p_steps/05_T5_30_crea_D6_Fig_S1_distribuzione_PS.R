@@ -21,7 +21,7 @@ if (TEST){
   thisdiroutput <- file.path(thisdirinput,"g_output")
   dir.create(thisdiroutput, showWarnings = F)
 }else{
-    thisdirinput <- direxp
+    thisdirinput <- dirtemp
     thisdiroutput <- direxp
 }
 
@@ -35,9 +35,9 @@ if (TEST){
 # create the list list_ds_analysed of all datasources including their subpopulations (ds_subpop)
 # store all the data in a list of datasets indexed by ds_subpop
 
-tab_nice_all <- list()
-list_ds_analysed <- c()
-name_suffix <- list()
+# tab_nice_all <- list()
+# list_ds_analysed <- c()
+# name_suffix <- list()
 
 
 input <- readRDS(file = file.path(thisdirinput, "D5_Fig_S1_distribuzione_PS.rds"))
@@ -45,7 +45,7 @@ input <- readRDS(file = file.path(thisdirinput, "D5_Fig_S1_distribuzione_PS.rds"
 #########################################
 # load input datasets
 
-input <- tab_nice_all[[suffix]]
+# input <- tab_nice_all[[suffix]]
 #    fread(file.path(thisdirinput, paste0("D5_Supplementary_Figure_1_masked",suffix,".csv")),colClasses = "character")
 
 #########################################

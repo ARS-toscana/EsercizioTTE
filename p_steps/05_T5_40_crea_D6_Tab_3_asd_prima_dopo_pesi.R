@@ -20,7 +20,7 @@ if (TEST){
   thisdiroutput <- file.path(dirtest,testname,"g_output")
   dir.create(thisdiroutput, showWarnings = F)
 }else{
-    thisdirinput <- direxp
+    thisdirinput <- dirtemp
     thisdiroutput <- direxp
 }
 
@@ -302,13 +302,6 @@ j <- descriptive_N_perc(j, "diab_")
 add_asd(j, "diab")
 
 ############################################
-# Insufficienza renale cronica
-row_header_1 <- c(row_header_1, "Insufficienza renale cronica")
-j <- descriptive_N_perc(j, "renal_") 
-
-add_asd(j, "renal")
-
-############################################
 # Farmaci concomitanti
 row_header_1 <- c(row_header_1, "Farmaci concomitanti")
 j <- add_empty_row(j)
@@ -334,33 +327,11 @@ j <- descriptive_N_perc(j, "antitromb_")
 
 add_asd(j, "antitromb")
 
-############################################
-# Ipolipemizzanti
-row_header_1 <- c(row_header_1, "Ipolipemizzanti")
-j <- descriptive_N_perc(j, "ipolip_")
-
-add_asd(j, "ipolip")
-
-############################################
-# Antidiabetici
-row_header_1 <- c(row_header_1, "Antidiabetici")
-j <- descriptive_N_perc(j, "antidiab_")
-
-add_asd(j, "antidiab")
-
-############################################
 # Bifosfonati
 row_header_1 <- c(row_header_1, "Bifosfonati")
 j <- descriptive_N_perc(j, "bifosf_")
 
 add_asd(j, "bifosf")
-
-############################################
-# Trattamenti concomitanti
-row_header_1 <- c(row_header_1, "Trattamenti concomitanti")
-j <- descriptive_N_perc(j, "conc_treat_")
-
-add_asd(j, "conc_treat")
 
 
 
