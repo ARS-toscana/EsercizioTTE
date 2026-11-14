@@ -164,7 +164,7 @@ desc_continuous <- function(dataset, inputvar, outputvar, vartot = "", condition
 allstrata <- readRDS(file.path(thisdirinput, "D4_follow_up.rds"))
 
 
-allstrata[,stratum:= exposure]
+allstrata[,stratum:= esposizione]
 
 # aggiunta strato "totale"
 
