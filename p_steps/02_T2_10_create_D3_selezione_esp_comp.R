@@ -1,264 +1,217 @@
 # author: Rosa Gini
 
-# v 1.0 15 Sep 2026
+# v 1.0 13 Nov 2026
 
 #########################################
 
 if (TEST){
-  testname <- "test_D3_eligibility"
+  testname <- "test_D3_selezione_esp_comp"
   thisdirinput <- file.path(dirtest,testname)
   thisdiroutput <- file.path(dirtest,testname,"g_output")
   dir.create(thisdiroutput, showWarnings = F)
-  thisdrug_names <- drug_names
 }else{
   thisdirinput <- dirtemp
   thisdiroutput <- dirtemp
-  thisdrug_names <- drug_names
 }
 
-# load the record of all the study drugs
-for (i in drug_names) { 
+
+# carica dati
+
+for (i in c("A","B")) {
+  medicine <- as.data.table(get(load(file.path(thisdirinput, paste0(i,".RData")))[[1]]))
+  setnames(medicine, "id", "person_id")
   
-  print(i)
-  
-  # load data
-  
-  medicines <- as.data.table(get(load(file.path(thisdirinput, paste0(i,".RData")))[[1]]))
-  setnames(medicines, "ID", "person_id")
-  
-  medicines <- medicines[,.(person_id, DATE)]
-  assign(i, medicines)
+  medicine <- medicine[,.(person_id, DATE)]
+  medicine[, drug := i]
+  assign(i, medicine)
 }
 
-# generate the selection dataset for each study drug
-i <- "A"
 
-for (i in thisdrug_names) {
-  
-  print(i)
-  
-  # load data
-  
-  assign("medicines", get(i))
-  
-  obsperiods <- readRDS(file = file.path(thisdirinput, "D3_OBSPERIODS.rds"))
-  
-  asl <- readRDS(file = file.path(thisdirinput, "D3_ASL.rds"))
-  
-  persons <- readRDS(file = file.path(thisdirinput, "D3_PERSONS.rds"))
-  
-  ################################
-  # start processing
-  
-  processing <- persons
-  
-  
-  ############################
-  # selection variables
-  
-  processing[, sel := 0]
-  
-  # sel_data_incomplete
-  
-  thissel <- "sel_data_incomplete" 
-  
-  processing[ , (thissel) := fifelse( sel == 1 | birth_date_or_gender_invalid == 1, 1, 0) ]
-  
-  processing[ , sel := fifelse(get(thissel) == 1 , 1, 0) ]
-  
-  # sel_no_obs_periods, sel_obs_period_not_overlapped_study_period, sel_never18plus_during_study_period
+persons <- readRDS(file = file.path(thisdirinput, "D3_individui.rds"))
+obsperiods <- readRDS(file = file.path(thisdirinput, "D3_periodi_osservazione.rds"))
+obsperiods <- obsperiods[periodo_in_studio_individuale == 1,]
 
-  obsenriched <- merge(processing, obsperiods, by = "person_id", all.x = T)
-  
-  obsenriched[, date_18th_birthday := birth_date %m+% years(18)]
-  
-  thissel <- "sel_no_obs_periods" 
-  
-  temp <- unique(obsenriched[is.na(start_op),.(person_id)])
-  
-  temp[, (thissel) := 1]
-  
-  processing <- merge(processing, temp, by = "person_id", all.x = T)
-  
-  processing[ , (thissel) := fifelse( sel == 1 | get(thissel) == 1, 1, 0, 0) ]
-  
-  processing[ , sel := fifelse(sel == 1 |get(thissel) == 1 , 1, 0) ]
-  
-  thissel <- "sel_obs_period_not_overlapped_study_period"
-  
-  temp <- unique(obsenriched[start_op <= study_end_date & end_op >= study_start_date,.(person_id)])
-  
-  temp[, (thissel) := 0]
-  
-  processing <- merge(processing, temp, by = "person_id", all.x = T)
-  
-  processing[ , (thissel) := fifelse( sel == 1 | is.na(get(thissel)), 1, 0, 0) ]
-  
-  processing[ , sel := fifelse(sel == 1 | get(thissel) == 1 , 1, 0) ]  
-  
-  thissel <- "sel_never18plus_during_study_period"
-  
-  temp <- obsenriched[start_op <= study_end_date & end_op >= study_start_date & date_18th_birthday <= end_op & date_18th_birthday <= study_end_date ,]
-  
-  temp <- unique(temp[,.(person_id)])
-  
-  temp[, (thissel) := 0]
-  
-  processing <- merge(processing, temp, by = "person_id", all.x = T)
-  
-  processing[ , (thissel) := fifelse( sel == 1 | is.na(get(thissel)), 1, 0, 0) ]
-  
-  processing[ , sel := fifelse(sel == 1 | get(thissel) == 1 , 1, 0) ]  
-  
-  # sel_no_drug
+################################
+# criteri di selezione
 
-  thissel <- "sel_no_drug"
-  
-  medenriched <- merge(processing[sel == 0,], medicines, by = "person_id", all = F)
-  
-  temp <- unique(medenriched[,.(person_id)])
+processing <- persons
 
-  temp[, (thissel) := 0]
-  
-  processing <- merge(processing, temp, by = "person_id", all.x = T)
-  
-  processing[ , (thissel) := fifelse( sel == 1 | is.na(get(thissel)), 1, 0) ]
-  
-  processing[ , sel := fifelse(sel == 1 | get(thissel) == 1 , 1, 0) ]
-  
-  # sel_no_drug_during_obs_period_correct_age
-  
-  thissel <- "sel_no_drug_during_obs_period_correct_age"
 
-  obsenriched <- merge(processing[sel == 0,.(person_id)], obsenriched, by = "person_id", all = F)
+############################
+# selection variables
 
-  obsenriched <- obsenriched[start_op <= study_end_date & end_op >= study_start_date & date_18th_birthday <= end_op & date_18th_birthday <= study_end_date ,]
-  
-  temp <- merge(medicines, obsenriched, by = "person_id", allow.cartesian = T, all = F)  
+processing[, sel := 0]
 
-  temp <- temp[DATE >= study_start_date & DATE >= date_18th_birthday & DATE <= study_end_date ,]
-  
-  setorder(temp, person_id, DATE)
-  
-  temp[, n := rowid(person_id)]
-  
-  temp <- temp[ n == 1, .(person_id, start_op, end_op, DATE)]
-  
-  setnames(temp, c("start_op", "end_op", "DATE"), c("start_study_op", "end_study_op", "date_first"))
-  
-  temp[, (thissel) := 0]
+# sel_dati_incompleti
 
-  processing <- merge(processing, temp, by = "person_id", all.x = T)
-  
-  processing[ , (thissel) := fifelse( sel == 1 | is.na(get(thissel)), 1, 0, 1) ]
-  
-  processing[ , sel := fifelse(sel == 1 | get(thissel) == 1 , 1, 0) ]
-  
-  # sel_no_lookback
-  
-  thissel <- "sel_no_lookback"
-  
-  processing[ , (thissel) := fifelse( sel == 1 | date_first < start_study_op + 730, 1, 0, 1) ]
-  
-  processing[ , sel := fifelse(sel == 1 | get(thissel) == 1 , 1, 0) ]
-  
-  # sel_no_ASL
-  
-  thissel <- "sel_no_ASL"
-  
-  asl <- merge(asl, processing[sel == 0,.(person_id)], all = F)
-  
-  processing[, ref_date := date_first]
-    
-  processing <- asl[
-    processing,
-    on = .(
-      person_id,
-      start_d <= ref_date,
-      end_d >= ref_date
-    )  
-  ]
-  
-  processing[, c("start_d", "end_d") := NULL]  
+thissel <- "sel_dati_incompleti" 
 
-  processing[ , (thissel) := fifelse( sel == 1 | is.na(ASL), 1, 0) ]
-  
-  processing[ , sel := fifelse(sel == 1 | get(thissel) == 1 , 1, 0) ]
-  
-  
-  ####################
-  # final variables
+processing[ , (thissel) := fifelse( sel == 1 | dati_incompleti == 1, 1, 0) ]
 
-  
-  # is_in_study
-  
-  processing[, is_in_study := fifelse(sel == 0, 1, 0)]
+processing[ , sel := fifelse(get(thissel) == 1 , 1, 0) ]
 
-  # is_first_line
-  
-  temp <- data.table()
-  for (j in drug_names) {
-    if (j!=i) {
-      temp <- rbind(temp, get(j), fill = T)
-    }
-  }
-  temp <- temp[, .(min = min(DATE)), by = "person_id" ]
-  
-  processing <- merge(processing, temp, all.x = T)
-  
-  processing[is_in_study == 1, is_first_line := fifelse( is.na(min) | min >= date_first, 1L, 0L )]
-  processing[, min := NULL]
-  
-  
-  # is_prevalent
-  
-  temp <- merge(medicines, processing[is_in_study == 1,.(person_id), all = F])
-  
-  temp <- temp[, .(min = min(DATE)), by = "person_id" ]
-  
-  processing <- merge(processing, temp, by = "person_id", all.x = T)
-  
-  processing[, is_prevalent := fifelse(is_in_study == 1 & min < date_first, 1L, 0L, NA_integer_)]
-  
-  # user_type
-  
-  processing[is_in_study == 1 & is_first_line == 1 & is_prevalent == 0, user_type :=   "first"]
-  processing[is_in_study == 1 & is_first_line == 1 & is_prevalent == 1, user_type :=   "prev"]
-  processing[is_in_study == 1 & is_first_line == 0, user_type :=   "nofirst"]
-  
-        
-  # clean and save
-  
-  tokeep <- c("person_id", "sel_data_incomplete", "sel_no_obs_periods", "sel_obs_period_not_overlapped_study_period", "sel_never18plus_during_study_period", "sel_no_drug", "sel_no_drug_during_obs_period_correct_age", "date_first", "start_study_op", "end_study_op", "sel_no_lookback", "sel_no_ASL", "is_in_study", "user_type", "ASL", "birth_date", "gender")
-  
-  processing <- processing[, ..tokeep]
-  
-  nameoutputfile <- paste0("D3_attrition_", i, ".rds")
-  
-  saveRDS(processing, file = file.path(thisdiroutput, nameoutputfile))
-  
-  # study population
-  
-  processing <- processing[is_in_study == 1,]
-  
-  tokeep <- c("person_id", "birth_date", "gender","ASL", "date_first", "start_study_op", "end_study_op", "user_type")
-  
-  processing <- processing[, ..tokeep]
-  
-  nameoutputfile <- paste0("D3_cohort_", i, ".rds")
-  
-  saveRDS(processing, file = file.path(thisdiroutput, nameoutputfile))
+#####
+# sel_no_periodi_osservazione 	sel_obs_period_non_toccano_periodo_studio	
 
-  # incident population
+obsenriched <- merge(processing, obsperiods, by = "person_id", all.x = T)
 
-  processing <- processing[is_prevalent == 0,]
+obsenriched[, date_18th_birthday := birth_date %m+% years(18)]
 
-  tokeep <- c("person_id", "birth_date", "gender","ASL", "date_first", "start_study_op", "end_study_op",  "period")
+thissel <- "sel_no_periodi_osservazione" 
 
-  processing <- processing[, ..tokeep]
+temp <- unique(obsenriched[is.na(start_op),.(person_id)])
 
-  nameoutputfile <- paste0("D3_incidence_", i, ".rds")
+temp[, (thissel) := 1]
 
-  saveRDS(processing, file = file.path(thisdiroutput, nameoutputfile))
+processing <- merge(processing, temp, by = "person_id", all.x = T)
 
-}
+processing[ , (thissel) := fifelse( sel == 1 | get(thissel) == 1, 1, 0, 0) ]
+
+processing[ , sel := fifelse(sel == 1 |get(thissel) == 1 , 1, 0) ]
+
+thissel <- "sel_obs_period_non_toccano_periodo_studio"
+
+temp <- unique(obsenriched[start_op <= study_end_date & end_op >= study_start_date,.(person_id)])
+
+temp[, (thissel) := 0]
+
+processing <- merge(processing, temp, by = "person_id", all.x = T)
+
+processing[ , (thissel) := fifelse( sel == 1 | is.na(get(thissel)), 1, 0) ]
+
+processing[ , sel := fifelse(sel == 1 | get(thissel) == 1 , 1, 0) ]  
+
+thissel <- "sel_no_maschi"
+
+processing[ , (thissel) := fifelse( sel == 1 | is.na(gender) | gender != 1, 1, 0) ]
+
+processing[ , sel := fifelse(sel == 1 | get(thissel) == 1 , 1, 0) ]  
+
+
+thissel <- "sel_mai18durante_periodo_studio"
+
+temp <- obsenriched[start_op <= study_end_date & end_op >= study_start_date & date_18th_birthday <= end_op & date_18th_birthday <= study_end_date ,]
+
+temp <- unique(temp[,.(person_id)])
+
+temp[, (thissel) := 0]
+
+processing <- merge(processing, temp, by = "person_id", all.x = T)
+
+processing[ , (thissel) := fifelse( sel == 1 | is.na(get(thissel)), 1, 0, 0) ]
+
+processing[ , sel := fifelse(sel == 1 | get(thissel) == 1 , 1, 0) ]  
+
+
+# sel_no_farmaco
+
+thissel <- "sel_no_farmaco"
+
+medenriched <- merge(processing[sel == 0,], rbind(A,B), by = "person_id", all = F)
+
+temp <- unique(medenriched[,.(person_id)])
+
+temp[, (thissel) := 0]
+
+processing <- merge(processing, temp, by = "person_id", all.x = T)
+
+processing[ , (thissel) := fifelse( sel == 1 | is.na(get(thissel)), 1, 0) ]
+
+processing[ , sel := fifelse(sel == 1 | get(thissel) == 1 , 1, 0) ]
+
+
+# date_first	sel_no_farmaco_durante_periodo_studio_con_eta	
+
+temp <- medenriched[,.(date_first = min(DATE)), by = "person_id"]
+
+medenriched <- merge(medenriched, temp, by = "person_id", all.x = T)
+
+processing <- merge(processing, temp, by = "person_id", all.x = T)
+
+thissel <- "sel_no_farmaco_durante_periodo_studio_con_eta"
+
+obsenriched <- merge(obsenriched, temp, by = "person_id", all.x = T)
+
+temp <- obsenriched[date_first >= date_18th_birthday & date_first >= start_op & date_first <= end_op,]
+
+temp <- unique(temp[,.(person_id)])
+
+temp[, (thissel) := 0]
+
+processing <- merge(processing, temp, by = "person_id", all.x = T)
+
+processing[ , (thissel) := fifelse( sel == 1 | is.na(get(thissel)), 1, 0) ]
+
+processing[ , sel := fifelse(sel == 1 | get(thissel) == 1 , 1, 0) ]
+
+# sel_no_lookback 	
+
+thissel <- "sel_no_lookback"
+
+temp <- merge(obsenriched, processing[sel == 0,.(person_id)], all = F)
+
+temp <- temp[ date_first >= start_op + 730 & date_first <= end_op ,]
+
+temp <- unique(temp[,.(person_id)])
+
+temp[, (thissel) := 0]
+
+processing <- merge(processing, temp, by = "person_id", all.x = T)
+
+processing[ , (thissel) := fifelse( sel == 1 | is.na(get(thissel)), 1, 0) ]
+
+processing[ , sel := fifelse(sel == 1 | get(thissel) == 1 , 1, 0) ]
+
+# sel_farmaco_ambiguo	drug
+
+thissel <- "sel_farmaco_ambiguo"
+
+temp <- medenriched[DATE == date_first,]
+
+temp[, N := .N, by = "person_id"]
+
+temp <- temp[N == 1,.(person_id, drug)]
+
+temp[, (thissel) := 0]
+
+processing <- merge(processing, temp, by = "person_id", all.x = T)
+
+processing[ , (thissel) := fifelse( sel == 1 | is.na(get(thissel)), 1, 0, 1) ]
+
+processing[ , sel := fifelse(sel == 1 | get(thissel) == 1 , 1, 0) ]
+
+####################
+# final variables
+
+# in_studio
+
+processing[, in_studio := fifelse(sel == 0, 1, 0)]
+
+# age
+
+processing[, age := age_fast(birth_date, date_first)]
+
+
+####################
+# clean and save
+
+tokeep <- c("person_id", "sel_dati_incompleti", "sel_no_periodi_osservazione", "sel_obs_period_non_toccano_periodo_studio", "sel_no_maschi", "sel_mai18durante_periodo_studio", "sel_no_farmaco", "date_first", "sel_no_farmaco_durante_periodo_studio_con_eta", "sel_no_lookback", "sel_farmaco_ambiguo", "drug", "in_studio", "birth_date", "age")
+
+processing <- processing[, ..tokeep]
+
+nameoutputfile <- paste0("D3_selezione_esp_comp.rds")
+
+saveRDS(processing, file = file.path(thisdiroutput, nameoutputfile))
+
+# study population
+
+processing <- processing[in_studio == 1,]
+
+tokeep <- c("person_id",  "date_first",  "drug", "birth_date", "age")
+
+processing <- processing[, ..tokeep]
+
+nameoutputfile <- paste0("D3_esp_comp.rds")
+
+saveRDS(processing, file = file.path(thisdiroutput, nameoutputfile))
+
