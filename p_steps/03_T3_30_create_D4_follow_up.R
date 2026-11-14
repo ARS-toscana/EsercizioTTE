@@ -37,10 +37,16 @@ date_censura_l <- c("data_morte",                      # 1 = morte
 # caricamento popolazione in studio
 persons <- readRDS(file.path(thisdirinput,paste0("D3_esp_comp.rds")))
 
-processing <- persons[, .(person_id,
+# caricamento periodi osservazione
+oss <- readRDS(file.path(thisdirinput,paste0("D3_periodi_osservazione.rds")))
+
+processing <- merge(persons, oss[, .(person_id, end_op)], by = "person_id", all.x = T)
+processing <- processing[end_op >= date_first ,]
+
+processing <- processing[, .(person_id,
                           drug,
                           t0 = as.Date(date_first),
-                          data_fine_osservazione_persona = as.Date(op_end))]
+                          data_fine_osservazione_persona = as.Date(end_op))]
 
 # FINE STUDIO
 processing[, data_fine_studio := study_end_date]
