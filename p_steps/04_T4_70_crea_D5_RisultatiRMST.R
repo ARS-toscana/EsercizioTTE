@@ -1,6 +1,6 @@
 ############################################################
 #                                                          #
-#                 CREATE D5_ResultsRMST                    #
+#                 CREATE D5_RisultatiRMST                  #
 #                                                          #
 ############################################################
 # authors: Azzurra Bongianni, Rosa Gini, Olga Paoletti
@@ -40,21 +40,15 @@
 #   - existing truncated IPTW weights are retained
 
 
-print("CREATE D5_ResultsRMST")
+print("CREATE D5_RisultatiRMST")
 
 ############################################################
 
 if (TEST) {
-  testname <- "test_33_D5_ResultsRMST"
-  thisdirinput <- file.path(
-    dirtest,
-    testname
-  )
-  thisdiroutput <- file.path(
-    thisdirinput,
-    "g_output"
-  )
-  thisdirsettings <- thisdirinput
+  testname <- "test_D5_RisultatiRMST"
+  thisdirinput <- file.path(dirtest,testname)
+  thisdiroutput <- file.path(thisdirinput,"g_output")
+  # thisdirsettings <- thisdirinput
   dir.create(
     thisdiroutput,
     recursive = TRUE,
@@ -63,29 +57,29 @@ if (TEST) {
 } else {
   thisdirinput <- dirtemp
   thisdiroutput <- dirtemp
-  thisdirsettings <- dirpargen
+  #thisdirsettings <- dirpargen
 }
 
 ############################################################
 # 3. SETTINGS
 ############################################################
 
-settings <- readRDS(
-  file.path(
-    thisdirsettings,
-    "SETTINGS.rds"
-  )
-)
-settings <- as.data.table(settings)
-thissubpopulations <- unique(
-  settings[, subpop]
-)
-thissubpopulations <- unlist(
-  strsplit(
-    trimws(thissubpopulations),
-    " +"
-  )
-)
+# settings <- readRDS(
+#   file.path(
+#     thisdirsettings,
+#     "SETTINGS.rds"
+#   )
+# )
+# settings <- as.data.table(settings)
+# thissubpopulations <- unique(
+#   settings[, subpop]
+# )
+# thissubpopulations <- unlist(
+#   strsplit(
+#     trimws(thissubpopulations),
+#     " +"
+#   )
+# )
 
 ############################################################
 # 4. ANALYSIS DEFINITIONS
@@ -93,85 +87,95 @@ thissubpopulations <- unlist(
 
 analysis_definitions <- list(
   E1 = list(
-    outcome_col = "E1_outcome",
-    fup_col = "E1_fup",
-    calculate_rmst = FALSE,
+    outcome_col = "evento",
+    fup_col = "tempo_evento",
+    calculate_rmst = TRUE,
     tau = NA_real_,
     label = "E1"
-  ),
-  E2_year1 = list(
-    outcome_col = "E2b_outcome",
-    fup_col = "E2b_fup",
-    calculate_rmst = TRUE,
-    tau = 1,
-    label = "E2_year1"
-  ),
-  E2_year2 = list(
-    outcome_col = "E2a_outcome",
-    fup_col = "E2a_fup",
-    calculate_rmst = TRUE,
-    tau = 2,
-    label = "E2_year2"
-  ),
-  E3 = list(
-    outcome_col = "E3_outcome",
-    fup_col = "E3_fup",
-    calculate_rmst = FALSE,
-    tau = NA_real_,
-    label = "E3"
+    )
   )
-)
+  # E1 = list(
+  #   outcome_col = "E1_outcome",
+  #   fup_col = "E1_fup",
+  #   calculate_rmst = FALSE,
+  #   tau = NA_real_,
+  #   label = "E1"
+  # )
+  # E2_year1 = list(
+  #   outcome_col = "E2b_outcome",
+  #   fup_col = "E2b_fup",
+  #   calculate_rmst = TRUE,
+  #   tau = 1,
+  #   label = "E2_year1"
+  # ),
+  # E2_year2 = list(
+  #   outcome_col = "E2a_outcome",
+  #   fup_col = "E2a_fup",
+  #   calculate_rmst = TRUE,
+  #   tau = 2,
+  #   label = "E2_year2"
+  # ),
+  # E3 = list(
+  #   outcome_col = "E3_outcome",
+  #   fup_col = "E3_fup",
+  #   calculate_rmst = FALSE,
+  #   tau = NA_real_,
+  #   label = "E3"
+  # )
+#)
 
 ############################################################
 # 5. BOOTSTRAP PARAMETERS
 ############################################################
 
-dataset_values <- unique(as.character(settings$ds))
-if (length(dataset_values) != 1L) {
-  stop("settings$ds must contain exactly one dataset name.")
-}
+# dataset_values <- unique(as.character(settings$ds))
+# if (length(dataset_values) != 1L) {
+#   stop("settings$ds must contain exactly one dataset name.")
+# }
 
 # Diagnostic mode is activated automatically and exclusively for SIDIAP.
-debug_rmst <- identical(dataset_values, "SIDIAP")
-B <- if (debug_rmst) 50L else 1000L
+#debug_rmst <- identical(dataset_values, "SIDIAP")
+#B <- if (debug_rmst) 50L else 1000L
+B <- 1000L
 bootstrap_seed <- 1234L
 
 # Print warnings immediately, close to the analysis that generated them.
-if (debug_rmst) {
-  options(warn = 1)
-}
-if (debug_rmst) {
-  # Sequential processing avoids Windows PSOCK worker failures and
-  # non-exportable external-pointer errors.
-  future::plan(
-    future::sequential
-  )
-}else{
-  available_cores <- future::availableCores()
-  maximum_workers <- 2L
-  n_workers <- max(
-    1L,
-    min(
-      maximum_workers,
-      available_cores - 1L
-    )
-  )
-  
-  if (n_workers > 1L) {
+# if (debug_rmst) {
+#   options(warn = 1)
+# }
+# if (debug_rmst) {
+#   # Sequential processing avoids Windows PSOCK worker failures and
+#   # non-exportable external-pointer errors.
+#   future::plan(
+#     future::sequential
+#   )
+# }else{
+#   available_cores <- future::availableCores()
+#   maximum_workers <- 2L
+#   n_workers <- max(
+#     1L,
+#     min(
+#       maximum_workers,
+#       available_cores - 1L
+#     )
+#   )
+
+n_workers <- max(1L, min(2L, future::availableCores() - 1L))
+if (n_workers > 1L) {
     
     
     # DG-CHANGES: the following part was modified by DG on 31-07-2026 in connection with Github issue #53
     
-    future::plan(future::sequential)
-    gc()
+  future::plan(future::sequential)
+  gc()
     
     # end of DG-CHANGES
     
     
-    future::plan(
-      future::multisession,
-      workers = n_workers
-    )
+  future::plan(
+    future::multisession,
+    workers = n_workers
+  )
     
   } else {
     
@@ -179,7 +183,7 @@ if (debug_rmst) {
       future::sequential
     )
   }
-}
+#}
 
 
 ############################################################
@@ -197,17 +201,17 @@ empty_rmst_result <- function() {
 # 8. PERCENTILE CONFIDENCE INTERVAL
 ############################################################
 percentile_ci <- function(x) {
-  x <- x[
-    is.finite(x)
-  ]
-  if (length(x) < 2L) {
-    return(
-      c(
-        lower = NA_real_,
-        upper = NA_real_
-      )
-    )
-  }
+  # x <- x[
+  #   is.finite(x)
+  # ]
+  # if (length(x) < 2L) {
+  #   return(
+  #     c(
+  #       lower = NA_real_,
+  #       upper = NA_real_
+  #     )
+  #   )
+  # }
   stats::quantile(
     x,
     probs = c(
@@ -224,210 +228,266 @@ percentile_ci <- function(x) {
 # 9. STABLE WEIBULL AFT RMST FUNCTION
 ############################################################
 estimate_rmst_fast <- function(
-  dt,
-  tau,
-  weight_col = NULL,
-  calculate_hessian = FALSE,
-  print_errors = FALSE
+    dt,
+    tau,
+    weight_col = NULL
 ) {
   dt <- as.data.table(dt)
-  fail_rmst <- function(stage, detail = NULL) {
-    if (print_errors) {
-      message(
-        "RMST failed [", stage, "]",
-        if (!is.null(detail)) paste0(": ", detail) else ""
-      )
-    }
-    empty_rmst_result()
-  }
-  required_variables <- c(
-    "FUP_years",
-    "outcome",
-    "exposure"
-  )
-  missing_variables <- setdiff(
-    required_variables,
-    names(dt)
-  )
-  if (length(missing_variables) > 0L) {
-    if (print_errors) {
-      message(
-        "Missing variables: ",
-        paste(missing_variables, collapse = ", ")
-      )
-    }
-    return(fail_rmst("missing variables", paste(missing_variables, collapse = ", ")))
-  }
-  valid_rows <- (
-    !is.na(dt$FUP_years) &
-      is.finite(dt$FUP_years) &
-      dt$FUP_years > 0 &
-      !is.na(dt$outcome) &
-      dt$outcome %in% c(0L, 1L) &
-      !is.na(dt$exposure) &
-      dt$exposure %in% c(0L, 1L)
-  )
-  dt <- dt[valid_rows]
-  if (!is.null(weight_col)) {
-    if (!weight_col %in% names(dt)) {
-      if (print_errors) {
-        message("Weight variable not found: ", weight_col)
-      }
-      return(fail_rmst("weight variable not found", weight_col))
-    }
-    valid_weight <- (
-      !is.na(dt[[weight_col]]) &
-        is.finite(dt[[weight_col]]) &
-        dt[[weight_col]] > 0
-    )
-    dt <- dt[valid_weight]
-  }
-  if (nrow(dt) == 0L) {
-    return(fail_rmst("no valid observations"))
-  }
-  if (!all(c(0L, 1L) %in% dt$exposure)) {
-    return(fail_rmst("one exposure group is absent"))
-  }
-  events_by_group <- dt[
-    ,
-    .(
-      events = sum(outcome == 1L, na.rm = TRUE)
-    ),
-    by = exposure
-  ]
-  if (
-    nrow(events_by_group) < 2L ||
-    any(events_by_group$events == 0L)
-  ) {
-    return(fail_rmst(
-      "no events in one exposure group",
-      paste0(
-        "events by group: ",
-        paste(events_by_group$exposure, events_by_group$events, sep = "=", collapse = ", ")
-      )
-    ))
-  }
-  # Fit the Weibull AFT model with survival::survreg.
-  # This avoids the flexsurvreg initial-value failure.
-  fit <- tryCatch(
-    {
-      if (is.null(weight_col)) {
-        survival::survreg(
-          survival::Surv(FUP_years, outcome) ~ exposure,
+  if (is.null(weight_col)) {
+    fit <- survival::survreg(
+        survival::Surv(tempo_evento, evento) ~ exposure,
+        data = dt,
+        dist = "weibull")
+  } else {
+        fit <- survival::survreg(
+          survival::Surv(tempo_evento, evento) ~ exposure,
           data = dt,
           dist = "weibull",
-          x = FALSE,
-          y = FALSE,
-          model = FALSE
+          weights = dt[[weight_col]]
         )
-      } else {
-        survival::survreg(
-          survival::Surv(FUP_years, outcome) ~ exposure,
-          data = dt,
-          dist = "weibull",
-          weights = dt[[weight_col]],
-          x = FALSE,
-          y = FALSE,
-          model = FALSE
-        )
-      }
-    },
-    error = function(e) {
-      if (print_errors) {
-        message(
-          "survreg failed: ",
-          conditionMessage(e)
-        )
-      }
-      NULL
-    }
-  )
-  if (is.null(fit)) {
-    return(fail_rmst("survreg returned NULL"))
   }
+  
   sigma <- as.numeric(fit$scale)
-  if (
-    length(sigma) != 1L ||
-    !is.finite(sigma) ||
-    sigma <= 0
-  ) {
-    return(fail_rmst("invalid Weibull scale", paste(sigma, collapse = ", ")))
-  }
   weibull_shape <- 1 / sigma
+  
   predict_one_rmst <- function(exposure_value) {
-    linear_predictor <- tryCatch(
-      as.numeric(
-        stats::predict(
+    linear_predictor <- as.numeric(
+      stats::predict(
           fit,
           newdata = data.frame(
-            exposure = exposure_value
-          ),
+            exposure = exposure_value),
           type = "lp"
-        )
-      )[1L],
-      error = function(e) {
-        if (print_errors) {
-          message(
-            "predict() failed for exposure ", exposure_value,
-            ": ", conditionMessage(e)
           )
-        }
-        NA_real_
-      }
-    )
-    if (!is.finite(linear_predictor)) {
-      return(NA_real_)
-    }
+      )[1L]
     weibull_scale <- exp(linear_predictor)
-    if (
-      !is.finite(weibull_scale) ||
-      weibull_scale <= 0
-    ) {
-      return(NA_real_)
-    }
-    tryCatch(
-      as.numeric(
-        stats::integrate(
-          f = function(time) {
-            exp(
-              -(time / weibull_scale) ^ weibull_shape
-            )
+    as.numeric(
+      stats::integrate(
+        f = function(time) {
+          exp(-(time / weibull_scale) ^ weibull_shape)
           },
           lower = 0,
           upper = tau,
           subdivisions = 100L,
-          rel.tol = 1e-7,
-          stop.on.error = FALSE
+          rel.tol = 1e-7
         )$value
-      ),
-      error = function(e) {
-        if (print_errors) {
-          message(
-            "integrate() failed for exposure ", exposure_value,
-            ": ", conditionMessage(e)
-          )
-        }
-        NA_real_
-      }
     )
   }
   rmst_0 <- predict_one_rmst(0L)
   rmst_1 <- predict_one_rmst(1L)
-  if (
-    !is.finite(rmst_0) ||
-    !is.finite(rmst_1)
-  ) {
-    return(fail_rmst(
-      "non-finite RMST",
-      paste0("rmst_0=", rmst_0, ", rmst_1=", rmst_1)
-    ))
-  }
   c(
     rmst_0 = rmst_0,
     rmst_1 = rmst_1,
     difference = rmst_1 - rmst_0
   )
 }
+
+# estimate_rmst_fast <- function(
+#   dt,
+#   tau,
+#   weight_col = NULL,
+#   calculate_hessian = FALSE,
+#   print_errors = FALSE
+# ) {
+#   dt <- as.data.table(dt)
+  # fail_rmst <- function(stage, detail = NULL) {
+  #   if (print_errors) {
+  #     message(
+  #       "RMST failed [", stage, "]",
+  #       if (!is.null(detail)) paste0(": ", detail) else ""
+  #     )
+  #   }
+  #   empty_rmst_result()
+  # }
+  # required_variables <- c(
+  #   "tempo_evento", #"FUP_years"
+  #   "evento",
+  #   "exposure"
+  # )
+  # missing_variables <- setdiff(
+  #   required_variables,
+  #   names(dt)
+  #)
+  # if (length(missing_variables) > 0L) {
+  #   if (print_errors) {
+  #     message(
+  #       "Missing variables: ",
+  #       paste(missing_variables, collapse = ", ")
+  #     )
+  #   }
+  #   return(fail_rmst("missing variables", paste(missing_variables, collapse = ", ")))
+  # }
+  # valid_rows <- (
+  #   !is.na(dt$FUP_years) &
+  #     is.finite(dt$FUP_years) &
+  #     dt$FUP_years > 0 &
+  #     !is.na(dt$outcome) &
+  #     dt$outcome %in% c(0L, 1L) &
+  #     !is.na(dt$exposure) &
+  #     dt$exposure %in% c(0L, 1L)
+  # )
+  # dt <- dt[valid_rows]
+  # if (!is.null(weight_col)) {
+    # if (!weight_col %in% names(dt)) {
+    #   if (print_errors) {
+    #     message("Weight variable not found: ", weight_col)
+    #   }
+    #   return(fail_rmst("weight variable not found", weight_col))
+    # }
+    # valid_weight <- (
+    #   !is.na(dt[[weight_col]]) &
+    #     is.finite(dt[[weight_col]]) &
+    #     dt[[weight_col]] > 0
+    # )
+    # dt <- dt[valid_weight]
+  #}
+  # if (nrow(dt) == 0L) {
+  #   return(fail_rmst("no valid observations"))
+  # }
+  # if (!all(c(0L, 1L) %in% dt$exposure)) {
+  #   return(fail_rmst("one exposure group is absent"))
+  # }
+  # events_by_group <- dt[
+  #   ,
+  #   .(
+  #     events = sum(outcome == 1L, na.rm = TRUE)
+  #   ),
+  #   by = exposure
+  # ]
+  # if (
+  #   nrow(events_by_group) < 2L ||
+  #   any(events_by_group$events == 0L)
+  # ) {
+  #   return(fail_rmst(
+  #     "no events in one exposure group",
+  #     paste0(
+  #       "events by group: ",
+  #       paste(events_by_group$exposure, events_by_group$events, sep = "=", collapse = ", ")
+  #     )
+  #   ))
+  # }
+  # Fit the Weibull AFT model with survival::survreg.
+  # This avoids the flexsurvreg initial-value failure.
+   # fit <- tryCatch(
+  #   {
+  #     if (is.null(weight_col)) {
+       #  survival::survreg(
+       #    survival::Surv(tempo_evento, evento) ~ exposure,
+       #    data = dt,
+       #    dist = "weibull",
+       #    # x = FALSE,
+       #    # y = FALSE,
+       #    # model = FALSE
+       #  )
+       # } else {
+       #   survival::survreg(
+       #     survival::Surv(FUP_years, outcome) ~ exposure,
+       #     data = dt,
+       #     dist = "weibull",
+       #     weights = dt[[weight_col]]
+       #   )
+       #  }
+      #     x = FALSE,
+      #     y = FALSE,
+      #     model = FALSE
+      #   )
+      # }
+  #   },
+  #   error = function(e) {
+  #     if (print_errors) {
+  #       message(
+  #         "survreg failed: ",
+  #         conditionMessage(e)
+  #       )
+  #     }
+  #     NULL
+  #   }
+  # )
+  # if (is.null(fit)) {
+  #   return(fail_rmst("survreg returned NULL"))
+  # }
+  # sigma <- as.numeric(fit$scale)
+  # if (
+  #   length(sigma) != 1L ||
+  #   !is.finite(sigma) ||
+  #   sigma <= 0
+  # ) {
+  #   return(fail_rmst("invalid Weibull scale", paste(sigma, collapse = ", ")))
+  # }
+  # weibull_shape <- 1 / sigma
+  # predict_one_rmst <- function(exposure_value) {
+  #   linear_predictor <- tryCatch(
+  #     as.numeric(
+  #       stats::predict(
+  #         fit,
+  #         newdata = data.frame(
+  #           exposure = exposure_value
+  #         ),
+  #         type = "lp"
+  #       )
+  #     )[1L],
+    #   error = function(e) {
+    #     if (print_errors) {
+    #       message(
+    #         "predict() failed for exposure ", exposure_value,
+    #         ": ", conditionMessage(e)
+    #       )
+    #     }
+    #     NA_real_
+    #   }
+    # )
+    # if (!is.finite(linear_predictor)) {
+    #   return(NA_real_)
+    # }
+    # weibull_scale <- exp(linear_predictor)
+  #   if (
+  #     !is.finite(weibull_scale) ||
+  #     weibull_scale <= 0
+  #   ) {
+  #     return(NA_real_)
+  #   }
+  #   tryCatch(
+  #     as.numeric(
+  #       stats::integrate(
+  #         f = function(time) {
+  #           exp(
+  #             -(time / weibull_scale) ^ weibull_shape
+  #           )
+  #         },
+  #         lower = 0,
+  #         upper = tau,
+  #         subdivisions = 100L,
+  #         rel.tol = 1e-7,
+  #         stop.on.error = FALSE
+  #       )$value
+  #     ),
+  #     error = function(e) {
+  #       if (print_errors) {
+  #         message(
+  #           "integrate() failed for exposure ", exposure_value,
+  #           ": ", conditionMessage(e)
+  #         )
+  #       }
+  #       NA_real_
+  #     }
+  #   )
+  # }
+  # rmst_0 <- predict_one_rmst(0L)
+  # rmst_1 <- predict_one_rmst(1L)
+  # if (
+  #   !is.finite(rmst_0) ||
+  #   !is.finite(rmst_1)
+  # ) {
+  #   return(fail_rmst(
+  #     "non-finite RMST",
+  #     paste0("rmst_0=", rmst_0, ", rmst_1=", rmst_1)
+  #   ))
+  # }
+#   c(
+#     rmst_0 = rmst_0,
+#     rmst_1 = rmst_1,
+#     difference = rmst_1 - rmst_0
+#   )
+# }
 
 ############################################################
 # 9B. DIAGNOSTIC WEIBULL MODEL
@@ -440,17 +500,17 @@ diagnose_survreg <- function(
   weight_col = NULL
 ) {
   diagnostic_data <- as.data.table(copy(dt))
-  diagnostic_data <- diagnostic_data[
-    is.finite(FUP_years) &
-      FUP_years > 0 &
-      outcome %in% c(0L, 1L) &
-      exposure %in% c(0L, 1L)
-  ]
-  if (!is.null(weight_col)) {
-    diagnostic_data <- diagnostic_data[
-      is.finite(get(weight_col)) & get(weight_col) > 0
-    ]
-  }
+  # diagnostic_data <- diagnostic_data[
+  #   is.finite(FUP_years) &
+  #     FUP_years > 0 &
+  #     outcome %in% c(0L, 1L) &
+  #     exposure %in% c(0L, 1L)
+  # ]
+  # if (!is.null(weight_col)) {
+  #   diagnostic_data <- diagnostic_data[
+  #     is.finite(get(weight_col)) & get(weight_col) > 0
+  #   ]
+  # }
   cat(
     "\n--- DIAGNOSTIC MODEL ", model_label,
     ": ", analysis_label, " ---\n",
@@ -461,11 +521,11 @@ diagnose_survreg <- function(
     .(
       rows = .N,
       patients = uniqueN(person_id),
-      events = sum(outcome == 1L),
-      events_before_tau = sum(outcome == 1L & FUP_years <= tau),
-      min_fup = min(FUP_years),
-      median_fup = median(FUP_years),
-      max_fup = max(FUP_years),
+      events = sum(evento == 1L),
+      events_before_tau = sum(evento == 1L & tempo_evento <= tau),
+      min_fup = min(tempo_evento),
+      median_fup = median(tempo_evento),
+      max_fup = max(tempo_evento),
       min_weight = if (!is.null(weight_col)) min(get(weight_col)) else NA_real_,
       max_weight = if (!is.null(weight_col)) max(get(weight_col)) else NA_real_
     ),
@@ -474,12 +534,12 @@ diagnose_survreg <- function(
   cat("Model", model_label," \n")
   print(model_data_summary)
   captured_warnings <- character()
-  fit <- tryCatch(
+  fit <- #tryCatch(
     withCallingHandlers(
       {
         if (is.null(weight_col)) {
           survival::survreg(
-            survival::Surv(FUP_years, outcome) ~ exposure,
+            survival::Surv(tempo_evento, evento) ~ exposure,
             data = diagnostic_data,
             dist = "weibull",
             x = TRUE,
@@ -488,7 +548,7 @@ diagnose_survreg <- function(
           )
         } else {
           survival::survreg(
-            survival::Surv(FUP_years, outcome) ~ exposure,
+            survival::Surv(tempo_evento, evento) ~ exposure,
             data = diagnostic_data,
             dist = "weibull",
             weights = diagnostic_data[[weight_col]],
@@ -502,61 +562,61 @@ diagnose_survreg <- function(
         captured_warnings <<- c(captured_warnings, conditionMessage(w))
         invokeRestart("muffleWarning")
       }
-    ),
-    error = function(e) {
-      message("DIAGNOSTIC survreg error [", model_label, "]: ", conditionMessage(e))
-      NULL
-    }
-  )
+    )
+  #   error = function(e) {
+  #     message("DIAGNOSTIC survreg error [", model_label, "]: ", conditionMessage(e))
+  #     NULL
+  #   }
+  # )
   if (length(captured_warnings) > 0L) {
     message(
       "DIAGNOSTIC survreg warnings [", model_label, "]: ",
       paste(unique(captured_warnings), collapse = " | ")
     )
   }
-  if (is.null(fit)) {
-    return(list(fit = NULL, summary = model_data_summary))
-  }
+  # if (is.null(fit)) {
+  #   return(list(fit = NULL, summary = model_data_summary))
+  # }
   cat("Coefficients:\n")
   print(stats::coef(fit), digits = 12)
   cat("survreg scale:", fit$scale, "\n")
-  predictions <- tryCatch(
+  predictions <- #tryCatch(
     stats::predict(
       fit,
       newdata = data.frame(exposure = c(0L, 1L)),
       type = "lp"
-    ),
-    error = function(e) {
-      message("DIAGNOSTIC predict error [", model_label, "]: ", conditionMessage(e))
-      c(NA_real_, NA_real_)
-    }
-  )
+    )
+  #   error = function(e) {
+  #     message("DIAGNOSTIC predict error [", model_label, "]: ", conditionMessage(e))
+  #     c(NA_real_, NA_real_)
+  #   }
+  # )
   cat("Linear predictions for exposure 0 and 1:\n")
   print(predictions, digits = 12)
-  diagnostic_rmst <- c(rmst_0 = NA_real_, rmst_1 = NA_real_, difference = NA_real_)
-  if (
-    length(predictions) == 2L &&
-    all(is.finite(predictions)) &&
-    is.finite(fit$scale) &&
-    fit$scale > 0
-  ) {
+  # diagnostic_rmst <- c(rmst_0 = NA_real_, rmst_1 = NA_real_, difference = NA_real_)
+  # if (
+  #   length(predictions) == 2L &&
+  #   all(is.finite(predictions)) &&
+  #   is.finite(fit$scale) &&
+  #   fit$scale > 0
+  # ) {
     shape <- 1 / fit$scale
     scales <- exp(predictions)
     rmst_values <- vapply(
       scales,
       FUN.VALUE = numeric(1L),
       FUN = function(scale_value) {
-        tryCatch(
-          stats::integrate(
-            function(time) exp(-(time / scale_value)^shape),
-            lower = 0,
-            upper = tau
-          )$value,
-          error = function(e) {
-            message("DIAGNOSTIC integrate error [", model_label, "]: ", conditionMessage(e))
-            NA_real_
-          }
-        )
+        #tryCatch(
+        stats::integrate(
+          function(time) exp(-(time / scale_value)^shape),
+          lower = 0,
+          upper = tau
+          )$value
+          # error = function(e) {
+          #   message("DIAGNOSTIC integrate error [", model_label, "]: ", conditionMessage(e))
+          #   NA_real_
+          # }
+        #)
       }
     )
     diagnostic_rmst <- c(
@@ -564,7 +624,7 @@ diagnose_survreg <- function(
       rmst_1 = rmst_values[2L],
       difference = rmst_values[2L] - rmst_values[1L]
     )
-  }
+  
   cat("Diagnostic RMST (not rounded):\n")
   print(diagnostic_rmst, digits = 12)
   list(
@@ -602,43 +662,43 @@ bootstrap_rmst_sequential <- function(
   n_exposed <- length(
     exposed_rows
   )
-  if (
-    n_control == 0L ||
-    n_exposed == 0L
-  ) {
-    warning(
-      "The bootstrap was skipped because one exposure group is empty."
-    )
-    return(
-      list(
-        estimates = data.table(),
-        ci = data.table(
-          crude_rmst_0_lb = NA_real_,
-          crude_rmst_0_ub = NA_real_,
-          crude_rmst_1_lb = NA_real_,
-          crude_rmst_1_ub = NA_real_,
-          crude_difference_lb = NA_real_,
-          crude_difference_ub = NA_real_,
-          iptw_rmst_0_lb = NA_real_,
-          iptw_rmst_0_ub = NA_real_,
-          iptw_rmst_1_lb = NA_real_,
-          iptw_rmst_1_ub = NA_real_,
-          iptw_difference_lb = NA_real_,
-          iptw_difference_ub = NA_real_,
-          requested_bootstraps = B,
-          successful_bootstraps_crude = 0L,
-          successful_bootstraps_iptw = 0L
-        )
-      )
-    )
-  }
+
+  # if (
+  #   n_control == 0L ||
+  #   n_exposed == 0L
+  # ) {
+  #   warning(
+  #     "The bootstrap was skipped because one exposure group is empty."
+  #   )
+  #   return(
+  #     list(
+  #       estimates = data.table(),
+  #       ci = data.table(
+  #         crude_rmst_0_lb = NA_real_,
+  #         crude_rmst_0_ub = NA_real_,
+  #         crude_rmst_1_lb = NA_real_,
+  #         crude_rmst_1_ub = NA_real_,
+  #         crude_difference_lb = NA_real_,
+  #         crude_difference_ub = NA_real_,
+  #         iptw_rmst_0_lb = NA_real_,
+  #         iptw_rmst_0_ub = NA_real_,
+  #         iptw_rmst_1_lb = NA_real_,
+  #         iptw_rmst_1_ub = NA_real_,
+  #         iptw_difference_lb = NA_real_,
+  #         iptw_difference_ub = NA_real_,
+  #         requested_bootstraps = B,
+  #         successful_bootstraps_crude = 0L,
+  #         successful_bootstraps_iptw = 0L
+  #       )
+  #     )
+  #   )
+  # }
   ##########################################################
   # Check whether adjusted analysis is available
   ##########################################################
   calculate_iptw <- (
     !is.null(weight_col) &&
-      weight_col %in% names(dt)
-  )
+      weight_col %in% names(dt))
   ##########################################################
   # Run bootstrap replicates
   ##########################################################
@@ -669,9 +729,9 @@ bootstrap_rmst_sequential <- function(
       crude_estimate <- estimate_rmst_fast(
         dt = bootstrap_data,
         tau = tau,
-        weight_col = NULL,
-        calculate_hessian = FALSE,
-        print_errors = FALSE
+        weight_col = NULL
+        # calculate_hessian = FALSE,
+        # print_errors = FALSE
       )
       ######################################################
       # IPTW-adjusted model
@@ -680,9 +740,9 @@ bootstrap_rmst_sequential <- function(
         iptw_estimate <- estimate_rmst_fast(
           dt = bootstrap_data,
           tau = tau,
-          weight_col = weight_col,
-          calculate_hessian = FALSE,
-          print_errors = FALSE
+          weight_col = weight_col
+          # calculate_hessian = FALSE,
+          # print_errors = FALSE
         )
       } else {
         iptw_estimate <- empty_rmst_result()
@@ -817,22 +877,22 @@ bootstrap_rmst_sequential <- function(
 ############################################################
 # 11. SUBPOPULATION LOOP
 ############################################################
-subpop <- "PC_HOSP"
-
-for (subpop in thissubpopulations) {
-  suffix <- fifelse(
-    subpop == "all",
-    "",
-    paste0(
-      "_",
-      subpop
-    )
-  )
-  cat(
-    "\nSubpopulation:",
-    subpop,
-    "\n"
-  )
+# subpop <- "PC_HOSP"
+# 
+# for (subpop in thissubpopulations) {
+#   suffix <- fifelse(
+#     subpop == "all",
+#     "",
+#     paste0(
+#       "_",
+#       subpop
+#     )
+#   )
+#   cat(
+#     "\nSubpopulation:",
+#     subpop,
+#     "\n"
+#   )
   ##########################################################
   # Load analytical dataset
   ##########################################################
@@ -840,138 +900,141 @@ for (subpop in thissubpopulations) {
     file.path(
       thisdirinput,
       paste0(
-        "D4_ANALYTICAL_DATASET_HR_RMST_TP",
-        suffix,
-        ".rds"
+        "D4_dataset_analitico_IR_HR_RMST.rds"
+        # suffix,
+        # ".rds"
       )
     )
   )
-  analytical_dataset <- as.data.table(
+analytical_dataset <- analytical_dataset[!is.na(truncated_weight) & truncated_weight > 0]
+  
+analytical_dataset <- as.data.table(
     analytical_dataset
   )
-  D4_EXP_ACT_COV_WEIGHT <-  readRDS(
-    file.path(
-      thisdirinput,
-      paste0(
-        "D4_EXP_ACT_COV_WEIGHT",
-        suffix,
-        ".rds"
-      )
-    )
-  )
-  if (debug_rmst) {
-    ##########################################################
-    # Diagnostic checks before merging weights
-    ##########################################################
-    n_rows_before_merge <- nrow(analytical_dataset)
-    n_patients_before_merge <- uniqueN(analytical_dataset$person_id)
-    duplicate_weights <- D4_EXP_ACT_COV_WEIGHT[
-      , .N, by = person_id
-    ][N > 1L]
-    conflicting_weights <- D4_EXP_ACT_COV_WEIGHT[
-      , .(n_distinct_weights = uniqueN(weight)), by = person_id
-    ][n_distinct_weights > 1L]
-    cat(
-      "Rows before weight merge:", n_rows_before_merge, "\n",
-      "Unique patients before weight merge:", n_patients_before_merge, "\n",
-      "person_id duplicated in weight data:", nrow(duplicate_weights), "\n",
-      "person_id with conflicting weights:", nrow(conflicting_weights), "\n"
-    )
-    if (nrow(duplicate_weights) > 0L) {
-      warning(
-        nrow(duplicate_weights),
-        " person_id values occur more than once in the weight data."
-      )
-      print(head(duplicate_weights, 20L))
-    }
-    if (nrow(conflicting_weights) > 0L) {
-      print(head(conflicting_weights, 20L))
-      stop(
-        "The weight data contain different weights for the same person_id. ",
-        "Resolve this before estimating RMST."
-      )
-    }
-    weights_for_merge <- unique(
-      D4_EXP_ACT_COV_WEIGHT[, .(person_id, weight)],
-      by = "person_id"
-    )
-    analytical_dataset <- merge(
-      analytical_dataset,
-      weights_for_merge,
-      by = "person_id",
-      all.x = TRUE
-    )
-    cat(
-      "Rows after weight merge:", nrow(analytical_dataset), "\n",
-      "Unique patients after weight merge:", uniqueN(analytical_dataset$person_id), "\n",
-      "Patients without weight:", uniqueN(analytical_dataset[is.na(weight), person_id]), "\n"
-    )
-    if (nrow(analytical_dataset) != n_rows_before_merge) {
-      warning("The number of analytical rows changed after the weight merge.")
-    }
-  } else {
-    analytical_dataset <- merge(
-      analytical_dataset,
-      D4_EXP_ACT_COV_WEIGHT[, .(person_id, weight)],
-      by = "person_id"
-    )
-  }
+  
+  # D4_EXP_ACT_COV_WEIGHT <-  readRDS(
+  #   file.path(
+  #     thisdirinput,
+  #     paste0(
+  #       "D4_EXP_ACT_COV_WEIGHT",
+  #       suffix,
+  #       ".rds"
+  #     )
+  #   )
+  # )
+  # if (debug_rmst) {
+  #   ##########################################################
+  #   # Diagnostic checks before merging weights
+  #   ##########################################################
+  #   n_rows_before_merge <- nrow(analytical_dataset)
+  #   n_patients_before_merge <- uniqueN(analytical_dataset$person_id)
+  #   duplicate_weights <- D4_EXP_ACT_COV_WEIGHT[
+  #     , .N, by = person_id
+  #   ][N > 1L]
+  #   conflicting_weights <- D4_EXP_ACT_COV_WEIGHT[
+  #     , .(n_distinct_weights = uniqueN(weight)), by = person_id
+  #   ][n_distinct_weights > 1L]
+  #   cat(
+  #     "Rows before weight merge:", n_rows_before_merge, "\n",
+  #     "Unique patients before weight merge:", n_patients_before_merge, "\n",
+  #     "person_id duplicated in weight data:", nrow(duplicate_weights), "\n",
+  #     "person_id with conflicting weights:", nrow(conflicting_weights), "\n"
+  #   )
+  #   if (nrow(duplicate_weights) > 0L) {
+  #     warning(
+  #       nrow(duplicate_weights),
+  #       " person_id values occur more than once in the weight data."
+  #     )
+  #     print(head(duplicate_weights, 20L))
+  #   }
+  #   if (nrow(conflicting_weights) > 0L) {
+  #     print(head(conflicting_weights, 20L))
+  #     stop(
+  #       "The weight data contain different weights for the same person_id. ",
+  #       "Resolve this before estimating RMST."
+  #     )
+  #   }
+  #   weights_for_merge <- unique(
+  #     D4_EXP_ACT_COV_WEIGHT[, .(person_id, weight)],
+  #     by = "person_id"
+  #   )
+  #   analytical_dataset <- merge(
+  #     analytical_dataset,
+  #     weights_for_merge,
+  #     by = "person_id",
+  #     all.x = TRUE
+  #   )
+  #   cat(
+  #     "Rows after weight merge:", nrow(analytical_dataset), "\n",
+  #     "Unique patients after weight merge:", uniqueN(analytical_dataset$person_id), "\n",
+  #     "Patients without weight:", uniqueN(analytical_dataset[is.na(weight), person_id]), "\n"
+  #   )
+  #   if (nrow(analytical_dataset) != n_rows_before_merge) {
+  #     warning("The number of analytical rows changed after the weight merge.")
+  #   }
+  # } else {
+  #   analytical_dataset <- merge(
+  #     analytical_dataset,
+  #     D4_EXP_ACT_COV_WEIGHT[, .(person_id, weight)],
+  #     by = "person_id"
+  #   )
+  # }
   ##########################################################
   # Validate required dataset columns
   ##########################################################
-  required_dataset_columns <- c(
-    "person_id",
-    "exposure",
-    "E1_outcome",
-    "E1_fup",
-    "E2a_outcome",
-    "E2a_fup",
-    "E2b_outcome",
-    "E2b_fup",
-    "E3_outcome",
-    "E3_fup"
-  )
-  missing_dataset_columns <- setdiff(
-    required_dataset_columns,
-    names(analytical_dataset)
-  )
-  if (length(missing_dataset_columns) > 0L) {
-    stop(
-      "Missing variables in D4_ANALYTICAL_DATASET_HR_RMST_TP",
-      suffix,
-      ": ",
-      paste(
-        missing_dataset_columns,
-        collapse = ", "
-      )
-    )
-  }
+  # required_dataset_columns <- c(
+  #   "person_id",
+  #   "exposure",
+  #   "E1_outcome",
+  #   "E1_fup",
+  #   "E2a_outcome",
+  #   "E2a_fup",
+  #   "E2b_outcome",
+  #   "E2b_fup",
+  #   "E3_outcome",
+  #   "E3_fup"
+  # )
+  # missing_dataset_columns <- setdiff(
+  #   required_dataset_columns,
+  #   names(analytical_dataset)
+  # )
+  # if (length(missing_dataset_columns) > 0L) {
+  #   stop(
+  #     "Missing variables in D4_ANALYTICAL_DATASET_HR_RMST_TP",
+  #     suffix,
+  #     ": ",
+  #     paste(
+  #       missing_dataset_columns,
+  #       collapse = ", "
+  #     )
+  #   )
+  # }
   ##########################################################
   # Initialize analysis results list
   ##########################################################
-  results_list <- vector(
-    mode = "list",
-    length = length(
-      analysis_definitions
-    )
-  )
-  names(results_list) <- names(
-    analysis_definitions
-  )
+  # results_list <- vector(
+  #   mode = "list",
+  #   length = length(
+  #     analysis_definitions
+  #   )
+  # )
+  # names(results_list) <- names(
+  #   analysis_definitions
+  # )
   ##########################################################
   # 12. ANALYSIS LOOP
   ##########################################################
-  for (
-    analysis_name in names(
-      analysis_definitions
-    )
-  ) {
-    definition <- analysis_definitions[[analysis_name]]
-    outcome_col <- definition$outcome_col
-    fup_col <- definition$fup_col
-    calculate_rmst <- definition$calculate_rmst
-    tau <- definition$tau
-    analysis_label <- definition$label
+  # for (
+  #   analysis_name in names(
+  #     analysis_definitions
+  #   )
+  # ) {
+  #   definition <- analysis_definitions[[analysis_name]]
+  #   outcome_col <- definition$outcome_col
+  #   fup_col <- definition$fup_col
+  #   calculate_rmst <- definition$calculate_rmst
+  #   tau <- definition$tau
+  #   analysis_label <- definition$label
     # cat(
     #   "\nRunning analysis:",
     #   analysis_label,
@@ -980,83 +1043,83 @@ for (subpop in thissubpopulations) {
     ########################################################
     # Create analysis input
     ########################################################
-    input <- analytical_dataset[
-      ,
-      .(
-        person_id,
-        exposure,
-        FUP = as.numeric(
-          get(fup_col)
-        ),
-        outcome = as.integer(
-          get(outcome_col)
-        ),
-        weight = if (
-          "weight" %in%
-          names(analytical_dataset)
-        ) {
-          as.numeric(
-            weight
-          )
-        } else {
-          NA_real_
-        }
-      )
-    ]
-    input[
-      ,
-      FUP_years := FUP / 365.25
-    ]
-    input[
-      ,
-      exposure := as.integer(
-        exposure
-      )
-    ]
+    # input <- analytical_dataset[
+    #   ,
+    #   .(
+    #     person_id,
+    #     exposure,
+    #     FUP = as.numeric(
+    #       get(fup_col)
+    #     ),
+    #     outcome = as.integer(
+    #       get(outcome_col)
+    #     ),
+    #     weight = if (
+    #       "weight" %in%
+    #       names(analytical_dataset)
+    #     ) {
+    #       as.numeric(
+    #         weight
+    #       )
+    #     } else {
+    #       NA_real_
+    #     }
+    #   )
+    # ]
+    # input[
+    #   ,
+    #   FUP_years := FUP / 365.25
+    # ]
+    # input[
+    #   ,
+    #   exposure := as.integer(
+    #     exposure
+    #   )
+    # ]
     ########################################################
     # Keep valid observations
     ########################################################
-    input <- input[
-      !is.na(person_id) &
-        !is.na(exposure) &
-        exposure %in% c(0L, 1L) &
-        !is.na(FUP) &
-        is.finite(FUP) &
-        FUP >= 0 &
-        !is.na(outcome) &
-        outcome %in% c(0L, 1L)
-    ]
+    # input <- input[
+    #   !is.na(person_id) &
+    #     !is.na(exposure) &
+    #     exposure %in% c(0L, 1L) &
+    #     !is.na(FUP) &
+    #     is.finite(FUP) &
+    #     FUP >= 0 &
+    #     !is.na(outcome) &
+    #     outcome %in% c(0L, 1L)
+    # ]
     ########################################################
     # Check IPTW weight availability
     ########################################################
-    has_weight <- (
-      "weight" %in%
-        names(analytical_dataset) &&
-        any(
-          is.finite(
-            input$weight
-          ) &
-            input$weight > 0,
-          na.rm = TRUE
-        )
-    )
+    # has_weight <- (
+    #   "weight" %in%
+    #     names(analytical_dataset) &&
+    #     any(
+    #       is.finite(
+    #         input$weight
+    #       ) &
+    #         input$weight > 0,
+    #       na.rm = TRUE
+    #     )
+    # )
     ########################################################
     # Descriptive results by exposure group
     ########################################################
-    processing <- input[
+    processing <- analytical_dataset[
       ,
       .(
         N_ = uniqueN(
           person_id
         ),
         N_outcome_ = sum(
-          outcome == 1L,
+          evento == 1L,
           na.rm = TRUE
         ),
         PY_ = sum(
-          FUP_years,
-          na.rm = TRUE
-        )
+          tempo_evento,
+          na.rm = TRUE  
+        ) / 365.25   #in anni
       ),
       by = .(
         exposure_stratum = exposure
@@ -1095,227 +1158,236 @@ for (subpop in thissubpopulations) {
     ########################################################
     # Incidence-rate 95% CI
     ########################################################
-    if (exists("exactPoiCI")) {
-      incidence_ci <- tryCatch(
-        {
+    # if (exists("exactPoiCI")) {
+      incidence_ci <- #tryCatch(
+        # {
           exactPoiCI(
             processing,
             "N_outcome_",
             "PY_",
-            conversion_factor = 1,
-            OoM = 3
+            conversion_factor = 1, 
+            per = 1000 #OoM = 3
           )
-        },
-        error = function(e) {
-          cat(
-            "exactPoiCI failed for ",
-            analysis_label,
-            ": ",
-            conditionMessage(e),
-            "\n",
-            sep = ""
-          )
-          NULL
-        }
+    #     },
+    #     error = function(e) {
+    #       cat(
+    #         "exactPoiCI failed for ",
+    #         analysis_label,
+    #         ": ",
+    #         conditionMessage(e),
+    #         "\n",
+    #         sep = ""
+    #       )
+    #       NULL
+    #     }
+    #   )
+    #   if (!is.null(incidence_ci)) {
+    #     processing[
+    #       ,
+    #       `:=`(
+    #         IR_lb_ =
+    #           incidence_ci[[2]],
+    #         IR_ub_ =
+    #           incidence_ci[[3]]
+    #       )
+    #     ]
+    #   } else {
+    #     processing[
+    #       ,
+    #       `:=`(
+    #         IR_lb_ = NA_real_,
+    #         IR_ub_ = NA_real_
+    #       )
+    #     ]
+    #   }
+    # } else {
+    #   warning(
+    #     "Function exactPoiCI() was not found. ",
+    #     "Incidence-rate confidence intervals were set to NA."
+    #   )
+    #   processing[
+    #     ,
+    #     `:=`(
+    #       IR_lb_ = NA_real_,
+    #       IR_ub_ = NA_real_
+    #     )
+    #   ]
+    # }
+    processing[
+      ,
+      `:=`(
+        IR_lb_ = incidence_ci[[2]],
+        IR_ub_ = incidence_ci[[3]]
       )
-      if (!is.null(incidence_ci)) {
-        processing[
-          ,
-          `:=`(
-            IR_lb_ =
-              incidence_ci[[2]],
-            IR_ub_ =
-              incidence_ci[[3]]
-          )
-        ]
-      } else {
-        processing[
-          ,
-          `:=`(
-            IR_lb_ = NA_real_,
-            IR_ub_ = NA_real_
-          )
-        ]
-      }
-    } else {
-      warning(
-        "Function exactPoiCI() was not found. ",
-        "Incidence-rate confidence intervals were set to NA."
-      )
-      processing[
-        ,
-        `:=`(
-          IR_lb_ = NA_real_,
-          IR_ub_ = NA_real_
-        )
-      ]
-    }
+    ]
     ########################################################
-    # 13. RMST FOR E2 ONLY
+    # 13. RMST #FOR E2 ONLY
     ########################################################
-    if (calculate_rmst) {
-      cat(
-        "Calculating RMST at",
-        tau,
-        "year(s)\n"
+    #if (calculate_rmst) {
+    tau <- 365
+    cat(
+      "Calculating RMST at",
+      tau,
+      "year(s)\n"
       )
       ######################################################
       # Input diagnostics, saved for inspection
       ######################################################
-      if (debug_rmst) {
-        rmst_input_diagnostics <- input[
-          ,
-          .(
-            rows = .N,
-            patients = uniqueN(person_id),
-            events = sum(outcome == 1L, na.rm = TRUE),
-            non_events = sum(outcome == 0L, na.rm = TRUE),
-            missing_outcome = sum(is.na(outcome)),
-            zero_fup = sum(FUP_years == 0, na.rm = TRUE),
-            negative_fup = sum(FUP_years < 0, na.rm = TRUE),
-            missing_fup = sum(is.na(FUP_years)),
-            non_finite_fup = sum(!is.finite(FUP_years)),
-            min_fup = suppressWarnings(min(FUP_years, na.rm = TRUE)),
-            median_fup = suppressWarnings(median(FUP_years, na.rm = TRUE)),
-            max_fup = suppressWarnings(max(FUP_years, na.rm = TRUE)),
-            events_before_tau = sum(
-              outcome == 1L & FUP_years <= tau,
-              na.rm = TRUE
-            ),
-            subjects_at_or_beyond_tau = sum(FUP_years >= tau, na.rm = TRUE),
-            valid_weight = sum(is.finite(weight) & weight > 0, na.rm = TRUE),
-            invalid_weight = sum(
-              is.na(weight) | !is.finite(weight) | weight <= 0
-            )
-          ),
-          by = exposure
-        ]
-        cat("RMST input diagnostics:\n")
-        print(rmst_input_diagnostics)
-        diagnostic_prefix <- paste0(
-          "RMST_diagnostics_", analysis_label, suffix
-        )
-        data.table::fwrite(
-          rmst_input_diagnostics,
-          file.path(thisdiroutput, paste0(diagnostic_prefix, "_input.csv"))
-        )
-        diagnostic_crude <- diagnose_survreg(
-          dt = input,
-          tau = tau,
-          analysis_label = analysis_label,
-          model_label = "CRUDE",
-          weight_col = NULL
-        )
-        diagnostic_iptw <- if (has_weight) {
-          diagnose_survreg(
-            dt = input,
-            tau = tau,
-            analysis_label = analysis_label,
-            model_label = "IPTW",
-            weight_col = "weight"
-          )
-        } else {
-          NULL
-        }
-        saveRDS(
-          list(
-            input_summary = rmst_input_diagnostics,
-            crude = diagnostic_crude,
-            iptw = diagnostic_iptw
-          ),
-          file.path(thisdiroutput, paste0(diagnostic_prefix, "_models.rds"))
-        )
-      }
+      # if (debug_rmst) {
+      #   rmst_input_diagnostics <- input[
+      #     ,
+      #     .(
+      #       rows = .N,
+      #       patients = uniqueN(person_id),
+      #       events = sum(outcome == 1L, na.rm = TRUE),
+      #       non_events = sum(outcome == 0L, na.rm = TRUE),
+      #       missing_outcome = sum(is.na(outcome)),
+      #       zero_fup = sum(FUP_years == 0, na.rm = TRUE),
+      #       negative_fup = sum(FUP_years < 0, na.rm = TRUE),
+      #       missing_fup = sum(is.na(FUP_years)),
+      #       non_finite_fup = sum(!is.finite(FUP_years)),
+      #       min_fup = suppressWarnings(min(FUP_years, na.rm = TRUE)),
+      #       median_fup = suppressWarnings(median(FUP_years, na.rm = TRUE)),
+      #       max_fup = suppressWarnings(max(FUP_years, na.rm = TRUE)),
+      #       events_before_tau = sum(
+      #         outcome == 1L & FUP_years <= tau,
+      #         na.rm = TRUE
+      #       ),
+      #       subjects_at_or_beyond_tau = sum(FUP_years >= tau, na.rm = TRUE),
+      #       valid_weight = sum(is.finite(weight) & weight > 0, na.rm = TRUE),
+      #       invalid_weight = sum(
+      #         is.na(weight) | !is.finite(weight) | weight <= 0
+      #       )
+      #     ),
+      #     by = exposure
+      #   ]
+      #   cat("RMST input diagnostics:\n")
+      #   print(rmst_input_diagnostics)
+      #   diagnostic_prefix <- paste0(
+      #     "RMST_diagnostics_", analysis_label, suffix
+      #   )
+      #   data.table::fwrite(
+      #     rmst_input_diagnostics,
+      #     file.path(thisdiroutput, paste0(diagnostic_prefix, "_input.csv"))
+      #   )
+      #   diagnostic_crude <- diagnose_survreg(
+      #     dt = input,
+      #     tau = tau,
+      #     analysis_label = analysis_label,
+      #     model_label = "CRUDE",
+      #     weight_col = NULL
+      #   )
+      #   diagnostic_iptw <- if (has_weight) {
+      #     diagnose_survreg(
+      #       dt = input,
+      #       tau = tau,
+      #       analysis_label = analysis_label,
+      #       model_label = "IPTW",
+      #       weight_col = "weight"
+      #     )
+      #   } else {
+      #     NULL
+      #   }
+      #   saveRDS(
+      #     list(
+      #       input_summary = rmst_input_diagnostics,
+      #       crude = diagnostic_crude,
+      #       iptw = diagnostic_iptw
+      #     ),
+      #     file.path(thisdiroutput, paste0(diagnostic_prefix, "_models.rds"))
+      #   )
+      # }
       ######################################################
       # Crude point estimate
       ######################################################
       crude_point <- estimate_rmst_fast(
-        dt = input,
+        dt = analytical_dataset,
         tau = tau,
-        weight_col = NULL,
-        calculate_hessian = TRUE,
-        print_errors = debug_rmst
+        weight_col = NULL
+        # calculate_hessian = TRUE,
+        # print_errors = debug_rmst
       )
-      if (debug_rmst) {
-        cat("Crude point estimate (not rounded):\n")
-        print(crude_point, digits = 12)
-      }
+      # if (debug_rmst) {
+      #   cat("Crude point estimate (not rounded):\n")
+      #   print(crude_point, digits = 12)
+      # }
       ######################################################
       # IPTW-adjusted point estimate
       ######################################################
-      if (has_weight) {
+      #if (has_weight) {
         iptw_point <- estimate_rmst_fast(
-          dt = input,
+          dt = analytical_dataset,
           tau = tau,
-          weight_col = "weight",
-          calculate_hessian = TRUE,
-          print_errors = debug_rmst
+          weight_col = "truncated_weight" #"weight",
+          # calculate_hessian = TRUE,
+          # print_errors = debug_rmst
         )
-        if (debug_rmst) {
-          cat("IPTW point estimate (not rounded):\n")
-          print(iptw_point, digits = 12)
-        }
-      } else {
-        warning(
-          "No valid weight values were found for ",
-          analysis_label,
-          ". Adjusted estimates were set to NA."
-        )
-        iptw_point <- empty_rmst_result()
-      }
+      #   if (debug_rmst) {
+      #     cat("IPTW point estimate (not rounded):\n")
+      #     print(iptw_point, digits = 12)
+      #   }
+      # } else {
+      #   warning(
+      #     "No valid weight values were found for ",
+      #     analysis_label,
+      #     ". Adjusted estimates were set to NA."
+      #   )
+      #   iptw_point <- empty_rmst_result()
+      # }
       ######################################################
       # Sequential bootstrap
       ######################################################
       bootstrap_result <- bootstrap_rmst_sequential(
-        dt = input,
+        dt = analytical_dataset,
         tau = tau,
         B = B,
-        weight_col = if (
-          has_weight
-        ) {
-          "weight"
-        } else {
-          NULL
-        },
-        seed = bootstrap_seed +
-          match(
-            analysis_name,
-            names(
-              analysis_definitions
-            )
-          )
+        weight_col = "truncated_weight",
+        # weight_col = if (
+        #   has_weight
+        # ) {
+        #   "weight"
+        # } else {
+        #   NULL
+        # },
+        seed = bootstrap_seed #+
+          # match(
+          #   analysis_name,
+          #   names(
+          #     analysis_definitions
+          #   )
+          # )
       )
       bootstrap_ci <- bootstrap_result$ci
-      if (debug_rmst) {
-        data.table::fwrite(
-          bootstrap_result$estimates,
-          file.path(
-            thisdiroutput,
-            paste0(diagnostic_prefix, "_bootstrap.csv")
-          )
-        )
-        cat("Bootstrap diagnostics:\n")
-        print(bootstrap_ci)
-        if (
-          bootstrap_ci$successful_bootstraps_crude <
-          0.8 * bootstrap_ci$requested_bootstraps
-        ) {
-          warning(
-            "Fewer than 80% of crude bootstrap models succeeded for ",
-            analysis_label, "."
-          )
-        }
-        if (
-          has_weight &&
-          bootstrap_ci$successful_bootstraps_iptw <
-          0.8 * bootstrap_ci$requested_bootstraps
-        ) {
-          warning(
-            "Fewer than 80% of IPTW bootstrap models succeeded for ",
-            analysis_label, "."
-          )
-        }
-      }
+      # if (debug_rmst) {
+      #   data.table::fwrite(
+      #     bootstrap_result$estimates,
+      #     file.path(
+      #       thisdiroutput,
+      #       paste0(diagnostic_prefix, "_bootstrap.csv")
+      #     )
+      #   )
+      #   cat("Bootstrap diagnostics:\n")
+      #   print(bootstrap_ci)
+      #   if (
+      #     bootstrap_ci$successful_bootstraps_crude <
+      #     0.8 * bootstrap_ci$requested_bootstraps
+      #   ) {
+      #     warning(
+      #       "Fewer than 80% of crude bootstrap models succeeded for ",
+      #       analysis_label, "."
+      #     )
+      #   }
+      #   if (
+      #     has_weight &&
+      #     bootstrap_ci$successful_bootstraps_iptw <
+      #     0.8 * bootstrap_ci$requested_bootstraps
+      #   ) {
+      #     warning(
+      #       "Fewer than 80% of IPTW bootstrap models succeeded for ",
+      #       analysis_label, "."
+      #     )
+      #   }
+      # }
       ######################################################
       # Crude RMST by exposure group
       ######################################################
@@ -1467,40 +1539,40 @@ for (subpop in thissubpopulations) {
             successful_bootstraps_iptw
         )
       ]
-    } else {
-      ######################################################
-      # No RMST for E1 and E3
-      ######################################################
-      processing[
-        ,
-        `:=`(
-          RMST_ = NA_real_,
-          RMST_lb_ = NA_real_,
-          RMST_ub_ = NA_real_,
-          Diff_RMST_crude_ =
-            NA_real_,
-          Diff_RMST_crude_lb_ =
-            NA_real_,
-          Diff_RMST_crude_ub_ =
-            NA_real_,
-          RMST_adj_ = NA_real_,
-          RMST_adj_lb_ = NA_real_,
-          RMST_adj_ub_ = NA_real_,
-          Diff_RMST_adj_ =
-            NA_real_,
-          Diff_RMST_adj_lb_ =
-            NA_real_,
-          Diff_RMST_adj_ub_ =
-            NA_real_,
-          bootstrap_samples =
-            NA_integer_,
-          successful_bootstraps_crude =
-            NA_integer_,
-          successful_bootstraps_iptw =
-            NA_integer_
-        )
-      ]
-    }
+    # } else {
+    #   ######################################################
+    #   # No RMST for E1 and E3
+    #   ######################################################
+    #   processing[
+    #     ,
+    #     `:=`(
+    #       RMST_ = NA_real_,
+    #       RMST_lb_ = NA_real_,
+    #       RMST_ub_ = NA_real_,
+    #       Diff_RMST_crude_ =
+    #         NA_real_,
+    #       Diff_RMST_crude_lb_ =
+    #         NA_real_,
+    #       Diff_RMST_crude_ub_ =
+    #         NA_real_,
+    #       RMST_adj_ = NA_real_,
+    #       RMST_adj_lb_ = NA_real_,
+    #       RMST_adj_ub_ = NA_real_,
+    #       Diff_RMST_adj_ =
+    #         NA_real_,
+    #       Diff_RMST_adj_lb_ =
+    #         NA_real_,
+    #       Diff_RMST_adj_ub_ =
+    #         NA_real_,
+    #       bootstrap_samples =
+    #         NA_integer_,
+    #       successful_bootstraps_crude =
+    #         NA_integer_,
+    #       successful_bootstraps_iptw =
+    #         NA_integer_
+    #     )
+    #   ]
+    # }
     ########################################################
     # Analysis metadata
     ########################################################
@@ -1508,43 +1580,44 @@ for (subpop in thissubpopulations) {
       ,
       `:=`(
         analysisRMST =
-          analysis_label,
+          "E1", #analysis_label,
         outcome_variable =
-          outcome_col,
+          "evento",
         followup_variable =
-          fup_col,
+          "tempo_evento",
         RMST_year =
-          tau,
-        ds = paste0(
-          settings$ds,
-          suffix
+          tau
+        # ds = paste0(
+        #   settings$ds,
+        #   suffix
         )
-      )
+      # )
     ]
     ########################################################
     # Store analysis output
     ########################################################
-    results_list[[analysis_name]] <- processing
-  }
+  #   results_list[[analysis_name]] <- processing
+  # }
   ##########################################################
   # 14. COMBINE ALL ANALYSES
   ##########################################################
-  results_list <- Filter(
-    Negate(
-      is.null
-    ),
-    results_list
-  )
-  if (length(results_list) == 0L) {
-    stop(
-      "No analysis results were produced."
-    )
-  }
-  D5_ResultsRMST <- rbindlist(
-    results_list,
-    use.names = TRUE,
-    fill = TRUE
-  )
+  # results_list <- Filter(
+  #   Negate(
+  #     is.null
+  #   ),
+  #   results_list
+  # )
+  # if (length(results_list) == 0L) {
+  #   stop(
+  #     "No analysis results were produced."
+  #   )
+  # }
+  # D5_ResultsRMST <- rbindlist(
+  #   results_list,
+  #   use.names = TRUE,
+  #   fill = TRUE
+  # )
+      D5_RisultatiRMST <- copy(processing)    
   ##########################################################
   # 15. ROUND OUTPUT VARIABLES
   ##########################################################
@@ -1566,13 +1639,13 @@ for (subpop in thissubpopulations) {
     "Diff_RMST_adj_lb_",
     "Diff_RMST_adj_ub_"
   )
-  columns_to_round <- intersect(
-    columns_to_round,
-    names(
-      D5_ResultsRMST
-    )
-  )
-  D5_ResultsRMST[
+  # columns_to_round <- intersect(
+  #   columns_to_round,
+  #   names(
+  #     D5_ResultsRMST
+  #   )
+  # )
+  D5_RisultatiRMST[
     ,
     (columns_to_round) := lapply(
       .SD,
@@ -1606,10 +1679,10 @@ for (subpop in thissubpopulations) {
   )
   variables_present <- old_names %in%
     names(
-      D5_ResultsRMST
+      D5_RisultatiRMST
     )
   setnames(
-    D5_ResultsRMST,
+    D5_RisultatiRMST,
     old = old_names[
       variables_present
     ],
@@ -1621,7 +1694,7 @@ for (subpop in thissubpopulations) {
   # 17. SELECT FINAL OUTPUT COLUMNS
   ##########################################################
   variables_to_keep <- c(
-    "ds",
+    #"ds",
     "analysisRMST",
     "outcome_variable",
     "followup_variable",
@@ -1645,48 +1718,48 @@ for (subpop in thissubpopulations) {
     "RMSTdiff_adj_",
     "RMSTdiff_adj_ll_",
     "RMSTdiff_adj_ul_",
-    "bootstrap_samples",
-    "successful_bootstraps_crude",
-    "successful_bootstraps_iptw"
+    "bootstrap_samples"
+    # "successful_bootstraps_crude",
+    # "successful_bootstraps_iptw"
   )
   variables_to_keep <- intersect(
     variables_to_keep,
     names(
-      D5_ResultsRMST
+      D5_RisultatiRMST
     )
   )
-  D5_ResultsRMST <- D5_ResultsRMST[
+  D5_RisultatiRMST <- D5_RisultatiRMST[
     ,
     ..variables_to_keep
   ]
   ##########################################################
   # 18. SET FINAL ANALYSIS ORDER
   ##########################################################
-  D5_ResultsRMST[
-    ,
-    analysis_order := match(
-      analysisRMST,
-      c(
-        "E1",
-        "E2_year1",
-        "E2_year2",
-        "E3"
-      )
-    )
-  ]
-  setorder(
-    D5_ResultsRMST,
-    analysis_order,
-    exposure_stratum
-  )
-  D5_ResultsRMST[
-    ,
-    analysis_order := NULL
-  ]
+  # D5_isultatiRMST[
+  #   ,
+  #   analysis_order := match(
+  #     analysisRMST,
+  #     c(
+  #       "E1",
+  #       "E2_year1",
+  #       "E2_year2",
+  #       "E3"
+  #     )
+  #   )
+  # ]
+  # setorder(
+  #   D5_ResultsRMST,
+  #   analysis_order,
+  #   exposure_stratum
+  # )
+  # D5_ResultsRMST[
+  #   ,
+  #   analysis_order := NULL
+  # ]
   #########################################
   # cleaning
   keep_cols <- c(
-    "ds",
+    #"ds",
     "analysisRMST",
     "exposure_stratum",
     "N_",
@@ -1708,31 +1781,33 @@ for (subpop in thissubpopulations) {
     "RMSTdiff_adj_ll_",
     "RMSTdiff_adj_ul_"
   )   #, covariate_after_intervals, do not keep since we have different values in time
-  D5_ResultsRMST <- D5_ResultsRMST[, ..keep_cols]
+  D5_RisultatiRMST <- D5_RisultatiRMST[, ..keep_cols]
   ##########################################################
   # 19. SAVE OUTPUT
   ##########################################################
-  outputfile <- D5_ResultsRMST
-  nameoutput <- paste0(
-    "D5_ResultsRMST",
-    suffix
-  )
-  assign(
-    nameoutput,
-    outputfile
-  )
-  saveRDS(
-    outputfile,
-    file = file.path(
-      thisdiroutput,
-      paste0(
-        nameoutput,
-        ".rds"
-      )
-    )
-  )
-}
-
+  # outputfile <- D5_RisultatiRMST
+  # nameoutput <- paste0(
+  #   "D5_RisultatiRMST",
+  #   suffix
+  # )
+  # assign(
+  #   nameoutput,
+  #   outputfile
+  # )
+#   saveRDS(
+#     outputfile,
+#     file = file.path(
+#       thisdiroutput,
+#       paste0(
+#         nameoutput,
+#         ".rds"
+#       )
+#     )
+#   )
+# }
+  
+saveRDS(D5_RisultatiRMST, file = file.path(
+  thisdiroutput, "D5_RisultatiRMST.rds"))
 ############################################################
 # 20. CLOSE PARALLEL WORKERS
 ############################################################
