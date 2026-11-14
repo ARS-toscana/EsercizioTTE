@@ -1,48 +1,35 @@
 ############################################################
 #                                                          #
-###         Create D5_Table_4_follow_up_time_and_reasons_for_censoring      #
+###     Crea D5_Tab_4_follow_up_time_e_cause_uscita        #
 #                                                          #
 ############################################################
 
 
-# authors: Rosa Gini
+# autori: Rosa Gini, Sabrina Giometto
 
-# v 1.1 3 Sep 2026
-
-# - added counts of persons with intercurring events not ending fup
-# - added time to event stratified per cause
+# v 1.0 12 Nov 2026
 
 
-# v 1.0 26 Jul 2026
-
-
-print('CREATE D5_Table_4_follow_up_time_and_reasons_for_censoring')
+print('CREA D5_Tab_4_follow_up_time_e_cause_uscita')
 
 
 #########################################
-# assign directories and other parameters used in this step
+# assegnazione cartelle
 
 if (TEST){
-  # testname <- "test_26_D5_Table_2c_baseline_matched_unmatched_final"
-  # thisdirinput <- file.path(dirtest,testname)
-  # thisdiroutput <- file.path(thisdirinput,"g_output")
-  # thisdirsettings <- thisdirinput
-  # dir.create(thisdiroutput, showWarnings = F)
+  testname <- "test_D5_Tab_4"
+  thisdirinput <- file.path(dirtest,testname)
+  thisdiroutput <- file.path(thisdirinput,"g_output")
+  dir.create(thisdiroutput, showWarnings = F)
 }else{
   thisdirinput <- dirtemp
   thisdiroutput <- dirtemp
-  thisdirsettings <- dirpargen
 }
 
 #########################################
 # load parameters
 
-settings <- readRDS(file.path(thisdirsettings,"SETTINGS.rds"))
-thissubpopulations <- unique(settings[,.(subpop)])
-thissubpopulations <- unlist(strsplit(trimws(thissubpopulations), " +"))
-
-
-parameters_this_step <- as.data.table(unique(readxl::read_excel(file.path(dirarchive,"codebooks",paste0("D5_Table_4.xlsx")),1)))
+parameters_this_step <- as.data.table(unique(readxl::read_excel(file.path(dirarchive,"codebooks",paste0("D4_follow_up.xlsx")),1)))
 
 thiscovariates_bin <- unlist(parameters_this_step[parameter == "covar_bin",.(values)])
 thiscovariates_cat <- unlist(parameters_this_step[parameter == "covar_cat",.(values)]) #[-1]
@@ -54,18 +41,11 @@ for (par in parameter_list) {
   assign(par, temp)
 }
 
-computemissingvar <- list()
-for (varname in c(thiscovariates_cat, thiscovariates_cont, thiscovariates_bin)) { 
-  computemissing <- unname(unlist(unique(parameters_this_step[values  == varname,.(has_missing)])[1]))
-  computemissingvar[[varname]] <- computemissing
-}
 
-
-subpop <- "all"
 #########################################
-# aSD FUNCTIONS
+# funzioni asd
 
-# binary 
+# binaria
 asd_bin <- function(x1, x0){
   p1 <- mean(x1 == 1, na.rm=TRUE)
   p0 <- mean(x0 == 1, na.rm=TRUE)
@@ -73,7 +53,7 @@ asd_bin <- function(x1, x0){
   round(val,1)
 }
 
-# continuous 
+# continua
 asd_cont <- function(x1, x0){
   m1 <- mean(x1, na.rm=TRUE)
   m0 <- mean(x0, na.rm=TRUE)
@@ -83,7 +63,7 @@ asd_cont <- function(x1, x0){
   round(val,1)
 }
 
-# categorical
+# categorica
 asd_cat <- function(x1, x0) {
   cats <- union(unique(x1), unique(x0))
   p1 <- sapply(cats, function(c) mean(x1 == c, na.rm = TRUE))
@@ -95,9 +75,9 @@ asd_cat <- function(x1, x0) {
 }
 
 
-# functions to describe covariates
+# funzioni per descrivere le covariate
 
-# binary
+# binarie
 desc_binary <- function(dataset, inputvar, outputvar, vartot = "", condition = "!is.na(person_id)", compute_Nmissing = F) {
   temp <- dataset[eval(parse(text = condition)) & get(inputvar) == 1, .(var_N = .N), by = "stratum" ]
   processing <- merge(processing,temp, by =  "stratum", all.x = T)
@@ -121,7 +101,7 @@ desc_binary <- function(dataset, inputvar, outputvar, vartot = "", condition = "
   return(processing)
 }
 
-# categorical
+# categoriche
 desc_cat <- function(dataset, inputvar, listofvalues, outputvar, vartot = "", condition = "!is.na(person_id)", compute_Nmissing = F) {
   for (valuevar in listofvalues) {
     temp <- dataset[eval(parse(text = condition)) & get(inputvar) == valuevar, .(var_N = .N), by = "stratum" ]
@@ -147,7 +127,7 @@ desc_cat <- function(dataset, inputvar, listofvalues, outputvar, vartot = "", co
   return(processing)
 }
 
-# continuous
+# continue
 desc_continuous <- function(dataset, inputvar, outputvar, vartot = "", condition = "!is.na(person_id)", compute_Nmissing = F) {
   temp <- dataset[eval(parse(text = condition)) , .(var_mean = round(mean(get(inputvar), na.rm = T),1),
                                                     var_sd = round(sd(get(inputvar), na.rm = T),1),
@@ -177,78 +157,50 @@ desc_continuous <- function(dataset, inputvar, outputvar, vartot = "", condition
 }
 
 
-for (subpop in thissubpopulations) {
-  suffix <- fifelse(subpop == "all","",paste0("_",subpop))
-  print(suffix)
   
+#########################################
+# caricamento dati input
   
-  #########################################
-  # load input datasets
-    
-  allstrata <- readRDS(file.path(thisdirinput,paste0("D4_FUP",suffix,".rds")))
+allstrata <- readRDS(file.path(thisdirinput, "D4_follow_up.rds"))
 
-  allstrata[,stratum:= exposure]
 
-  # add stratum "total"
-  
-  toadd <- copy(allstrata)
-  toadd[, stratum := 99]
-  
-  allstrata <- rbind(allstrata, toadd)
-  
-  # trasforms fup time from days to month
-  
-  
-  # allstrata[,pmonth:= round(fup_days_E1/30,1)]
-  
-    fupvars <- names(allstrata)[startsWith(names(allstrata), "fup_days")]
-  
-  for (fupvar in fupvars) {
-    
-    allstrata[,pmonth:= round(get(fupvar)/30,1)]
-    suf <- sub(paste0("^fup_days"), "", fupvar)
-    print(suf)
-    setnames(allstrata, "pmonth", paste0("pmonth",suf))    
-  }
-  
-  
-  #  number of subjects
-  processing <- allstrata[,.(N_ = .N), by = "stratum"]
-  
+allstrata[,stratum:= exposure]
 
-  
-  # descriptive
-  
-  # 
-  for (varname in thiscovariates_cat) {
-    computemissing <- unname(unlist(unique(parameters_this_step[values  == varname,.(has_missing)])[1]))
-    listofvaluesthisvar <- unname(unlist(unique(parameters_this_step[parameter  == paste0(varname,"value"),.(values)])))
-    computemissing <- ifelse(computemissing == 1, T, F)
-    processing <- desc_cat(dataset = allstrata, inputvar = paste0(varname), listofvalues = listofvaluesthisvar, outputvar = varname, vartot = "N_", compute_Nmissing = T)  
-  }
-  
-  # for (covar in c("age")) {
-  #   processing <- desc_continuous(dataset = allstrata, inputvar = covar, outputvar = covar, vartot = "N_", compute_Nmissing = F)  
-  # }
-  for (covar in c(thiscovariates_cont)) {
-    namevar <- paste0(covar)
-    allstrata[, (namevar) := as.numeric(get(namevar))]
-    suppressWarnings( processing <- desc_continuous(dataset = allstrata, inputvar =  paste0(covar), outputvar = covar, vartot = "N_", compute_Nmissing = F))
-  }
-  
-  for (covar in thiscovariates_bin) { 
-    processing <- desc_binary(dataset = allstrata, inputvar = paste0(covar), outputvar = covar, vartot = "N_", compute_Nmissing = F)
-    
-  }
+# aggiunta strato "totale"
 
-    
-  #########################################
-  # save
+toadd <- copy(allstrata)
+toadd[, stratum := 99]
 
-  outputfile <- processing
+allstrata <- rbind(allstrata, toadd)
 
-  nameoutput <- paste0("D5_Table_4_follow_up_time_and_reasons_for_censoring",suffix)
-  assign(nameoutput, outputfile)
-  saveRDS(outputfile, file = file.path(thisdiroutput, paste0(nameoutput,".rds")))
+#  numero di soggetti
+processing <- allstrata[,.(N_ = .N), by = "stratum"]
+
+# descrittiva
+
+for (varname in thiscovariates_cat) {
+  listofvaluesthisvar <- unname(unlist(unique(parameters_this_step[parameter  == paste0(varname,"value"),.(values)])))
+  processing <- desc_cat(dataset = allstrata, inputvar = paste0(varname), listofvalues = listofvaluesthisvar, outputvar = varname, vartot = "N_")  
 }
+
+for (covar in c(thiscovariates_cont)) {
+  namevar <- paste0(covar)
+  allstrata[, (namevar) := as.numeric(get(namevar))]
+  suppressWarnings( processing <- desc_continuous(dataset = allstrata, inputvar =  paste0(covar), outputvar = covar, vartot = "N_", compute_Nmissing = F))
+}
+
+for (covar in thiscovariates_bin) { 
+  processing <- desc_binary(dataset = allstrata, inputvar = paste0(covar), outputvar = covar, vartot = "N_", compute_Nmissing = F)
+  
+}
+
+  
+#########################################
+# salvataggio
+
+outputfile <- processing
+
+nameoutput <- "D5_Tab_4_follow_up_time_e_cause_uscita"
+assign(nameoutput, outputfile)
+saveRDS(outputfile, file = file.path(thisdiroutput, paste0(nameoutput,".rds")))
 

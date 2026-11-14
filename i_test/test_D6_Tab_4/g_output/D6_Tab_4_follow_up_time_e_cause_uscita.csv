@@ -1,0 +1,19 @@
+row_header,Totale,A,B
+N,5000,4294,706
+Giorni-persona di follow-up,"","",""
+Mediana (Q1 - Q3),365 (320.2-365),365 (310.7-365),365 (365-365)
+Min - Max,2.8-365,2.8-365,4.3-365
+Cause di fine folluw-up,"","",""
+Morte: N (%),984 (19.7%),900 (21%),84 (11.9%)
+"          Tempo all'evento, Mediana (Q1 - Q3)",198.8 (120.8-273.2),197.7 (119.7-272.9),211.5 (128.1-273.4)
+Fine osservazione persona: N (%),275 (5.5%),241 (5.6%),34 (4.8%)
+"          Tempo all'evento, Mediana (Q1 - Q3)",273.7 (202.8-318.9),270.5 (203.8-318.2),281.1 (200.7-332.2)
+Fine finestra studio: N (%),3503 (70.1%),2958 (68.9%),545 (77.2%)
+"          Tempo all'evento, Mediana (Q1 - Q3)",365 (365-365),365 (365-365),365 (365-365)
+Fine studio: N (%),238 (4.8%),195 (4.5%),43 (6.1%)
+"          Tempo all'evento, Mediana (Q1 - Q3)",258.7 (179-317.9),270.6 (178.6-320.7),246.1 (202.7-301.2)
+Eventi intercorrenti che non causano fine del follow-up,"","",""
+Interruzione: N (%),1383 (27.7%),1174 (27.3%),209 (29.6%)
+"Tempo all'evento, Mediana (Q1 - Q3)",207.4 (123.4-284.6),205 (120.3-281.2),225.8 (140.8-295.1)
+Switch: N (%),694 (13.9%),521 (12.1%),173 (24.5%)
+"Tempo all'evento, Mediana (Q1 - Q3)",133.7 (72.2-197),115.7 (65.8-180.1),184 (110.5-242.6)

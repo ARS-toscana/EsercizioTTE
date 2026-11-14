@@ -1,122 +1,58 @@
 ############################################################
 #                                                          #
-####         D6_Table_3_asd_before_after_weighting      ####
+####        Crea D6_Tab_3_asd_prima_dopo_pesi              #
 #                                                          #
 ############################################################
 
-# authors: Rosa Gini
+# authors: Rosa Gini, Sabrina Giometto
 
-# v 1.1
-# 4 Sep 2026
-# age changed from continuous to categorical
+# v 1.0 12 Nov 2026
 
-print('CREATE D6_Table_3_asd_before_after_weighting')
+
+print('CREA D6_Tab_3_asd_prima_dopo_pesi')
 
 #########################################
-# assign directories
+# assegnazione cartelle
 
 if (TEST){ 
-  # testname <- "test_20_D6_Table_2"
-  # thisdirinput <- paste0(file.path(dirtest, testname), "/")
-  # thisdiroutput <- file.path(dirtest,testname,"g_output")
-  # dir.create(thisdiroutput, showWarnings = F)
-  # thisdirsettings <- thisdirinput
-  # settings <- readRDS(file.path(thisdirsettings,"SETTINGS.rds"))
-  # thisdatasources_for_postprocessing <- settings$ds
-  # thisdatasource <- settings$ds
-  # thisdirarchive <- thisdirinput
-  # thisfolder_submission <- list()
-  # thisfolder_submission[[thisdatasource]] <- thisdirinput
+  testname <- "test_D6_Tab_3"
+  thisdirinput <- paste0(file.path(dirtest, testname), "/")
+  thisdiroutput <- file.path(dirtest,testname,"g_output")
+  dir.create(thisdiroutput, showWarnings = F)
 }else{
-  if (localprocessing){
     thisdirinput <- direxp
     thisdiroutput <- direxp
-    thisdirsettings <- dirpargen
-    settings <- readRDS(file.path(thisdirsettings,"SETTINGS.rds"))
-    thisdatasources_for_postprocessing <- settings$ds
-    thisdirarchive <- dirarchive
-    thisfolder_submission <- list()
-    thisfolder_submission[[thisdatasource]] <- thisdirinput
-  }else{
-    thisdatasources_for_postprocessing <- datasources_for_postprocessing
-    thisfolder_submission <- folders_submission
-    thisdiroutput <- file.path(direxp,"Formatted tables/")
-    dir.create(thisdiroutput, showWarnings = F)
-    thisdirarchive <- dirarchive
-  }
 }
 
 #########################################
-# load
+# caricamento dati
+thisdirarchive <- file.path(thisdir, "p_parameters", "archive_parameters")
 
-settings <- readRDS(file.path(thisdirsettings,"SETTINGS.rds"))
-thissubpopulations <- unique(settings[,.(subpop)])
-thissubpopulations <- unlist(strsplit(trimws(thissubpopulations), " +"))
+# lista covariate
+parameters_this_step <- as.data.table(unique(readxl::read_excel(file.path(thisdirarchive, "codebooks", "D4_esp_comp_baseline_pesi.xlsx"), 1)))
 
-PARSETTINGS <- as.data.table(readxl::read_excel(file.path(thisdirarchive, "PAR_SETTINGS.xlsx")))
+thiscovariates_bin <- unlist(parameters_this_step[parameter == "covar_bin",.(value)])
 
-thissubpopulations_ds <- list()
+# parameter_list <- unname(unlist(unique(parameters_this_step[,.(parameter)])))
+# 
+# for (par in parameter_list) {
+#   temp <- unname(unlist(unique(parameters_this_step[parameter == par,.(get("values"))])))
+#   assign(par, temp)
+# }
+# 
+# thiscovariates_bin <- covar_bin
+# thiscovariates_cat <- covar_cat
+# thiscovariates_cont <- covar_cont
 
-for (thisds in thisdatasources_for_postprocessing) {
-  thissubpopulations_ds[[thisds]] <- PARSETTINGS[ds == thisds,.(subpop)]
-  thissubpopulations_ds[[thisds]] <- unlist(strsplit(trimws(thissubpopulations_ds[[thisds]]), " +"))
-}
-
-PARPOP <- as.data.table(readxl::read_excel(file.path(thisdirarchive, "PAR_SUBPOP.xlsx")))
-
-# parameters of this step
-
-parameters_this_step <- as.data.table(unique(readxl::read_excel(file.path(dirarchive,"codebooks","D5_Table_3.xlsx"),1)))
-
-parameter_list <- unname(unlist(unique(parameters_this_step[,.(parameter)])))
-
-for (par in parameter_list) {
-  temp <- unname(unlist(unique(parameters_this_step[parameter == par,.(get("values"))])))
-  assign(par, temp)
-}
-
-thiscovariates_bin <- covar_bin
-thiscovariates_cat <- covar_cat
-thiscovariates_cont <- covar_cont
 
 #########################################
+# caricamento dati
 
-print("Now creating: D6_Table_3_asd_before_after_weighting")
-
-#########################################
-# load datasets from all data sources
-
-tab_nice_all <- list()
-list_ds_analysed <- c()
-name_suffix <- list()
-
-for (thisds in thisdatasources_for_postprocessing) {
-  
-  for (thissubpop in thissubpopulations_ds[[thisds]]) {
-    
-    thissuffix <- fifelse(thissubpop == "all","",paste0("_",thissubpop))
-    
-    filetoread <- file.path(thisfolder_submission[[thisds]], paste0("D5_Table_3_asd_before_after_trimming_masked", thissuffix, ".csv"))
-    
-    if (file.exists(filetoread)) {
+input <- readRDS(file.path(thisdirinput, "D5_Tab_3_asd_prima_dopo_pesi.rds"))
+tab_nice <- input
       
-      temp <- fread(filetoread, colClasses = "character")
-      
-      suffix <- paste0("_",thisds,thissuffix)
-      name_suffix[[suffix]] <- fifelse(unlist(PARPOP[ds == thisds & subpop == thissubpop,.(name_in_tables)]) == "", suffix, unlist(PARPOP[ds == thisds & subpop == thissubpop,.(name_in_tables)]))
-      
-      tab_nice_all[[suffix]] <- temp
-      list_ds_analysed <- c(list_ds_analysed, suffix)
-      
-    }else{
-      errmess <- paste("File",filetoread,"does not exist in the export folder of",thisds)
-      stop(errmess)
-    }
-  }
-}
-
 ##################
-# HELPERS
+# helpers
 
 add_empty_row <- function(j){
   j <- j + 1
@@ -151,6 +87,18 @@ descriptive_continuous <- function(j, covar){
   return(j)
 }
 
+descriptive_median_q1q3 <- function(j, covar) {
+  
+  j <- j + 1
+  varM <- paste0(covar,"_median")
+  varQ1 <- paste0(covar,"_q1")
+  varQ3 <- paste0(covar,"_q3")
+  tab_nice[, cell := paste0(get(varM), " (", get(varQ1), " - ",
+                            get(varQ3), ")")]
+  setnames(tab_nice, "cell", paste0("cell_", j))
+  return(j)
+}
+
 add_asd <- function(j, covar){
   varname <- paste0("cell_",j)
   varinput <- paste0(covar,"_asd_")
@@ -158,25 +106,15 @@ add_asd <- function(j, covar){
 }
 
 ##########################################
-# WRITE TABLE(S)
+# creazione tabelle
 
 #########################################
-# populate rows
-
-tab_nice <- data.table()
-
-for (suffix in list_ds_analysed) {
-  temp <- copy(tab_nice_all[[suffix]])
-  temp[, name_ds_subpop := name_suffix[[suffix]]]
-  temp[, ds_subpop := suffix]
-  tab_nice <- rbind(tab_nice, temp, fill = T)
-}
+# si popolano le righe
 
 #########################################
 # add rows for ASD
 
 asd_cols <- grep("_asd_", names(tab_nice), value = TRUE)
-asd_cols <- c("name_ds_subpop", "ds_subpop", asd_cols)
 
 asd <- copy(tab_nice)[1, ..asd_cols]
 asd[, stratum := "asd"]
@@ -213,7 +151,7 @@ tab_nice <- rbind(tab_nice, asd, fill = T)
 # 
 # setorder(tab_nice, name_ds_subpop, W, stratum)
 
-id_vars <- c("name_ds_subpop","ds_subpop","stratum","exposure")
+id_vars <- c("stratum", "exposure")
 
 # list columns ending in _BF or _AF
 bf_af_cols <- grep("_(BF|AF)$", names(tab_nice), value = TRUE)
@@ -237,7 +175,7 @@ long[, W := sub(".*_(BF|AF)$", "\\1", metric)]
 long[, metric := sub("_(BF|AF)$", "_", metric)]
 
 # make wide on metrics
-tab_long <- dcast(long, name_ds_subpop + ds_subpop + stratum + exposure + W ~ metric, value.var = "value")
+tab_long <- dcast(long, stratum + exposure + W ~ metric, value.var = "value")
 
 tab_long[, W := factor(W, levels = c("BF", "AF"))]
 
@@ -247,32 +185,24 @@ setorder(tab_nice, W, stratum)
 
 
 ############################################
-# row 1 - datasource
+# row 2 - stratum
 
 j <- 1
 
-row_header_1 <- c("Datasource")
-
-tab_nice[, cell := name_ds_subpop]
-setnames(tab_nice, "cell", paste0("cell_",j))
-
-############################################
-# row 2 - stratum
-
-row_header_1 <- c(row_header_1, "")
+row_header_1 <- c("")
 
 j <- j + 1
 
-tab_nice[stratum == "exposed", cell := "Exposed"]
-tab_nice[stratum == "comparators", cell := "Comparators"]
-tab_nice[stratum == "asd", cell := "Absolute Standardised Difference"]
+tab_nice[stratum == "exposed", cell := "Esposti"]
+tab_nice[stratum == "comparators", cell := "Comparatori"]
+tab_nice[stratum == "asd", cell := "Differenza assoluta standardizzata"]
 
 setnames(tab_nice, "cell", paste0("cell_",j))
 
 ############################################
 # row 3 - N
 
-row_header_1 <- c(row_header_1, "N")
+row_header_1 <- c(row_header_1, "Totale nuovi utilizzatori")
 
 j <- j + 1
 
@@ -280,160 +210,166 @@ tab_nice[, cell := N_]
 setnames(tab_nice, "cell", paste0("cell_",j))
 
 ############################################
-# demographics
-
-row_header_1 <- c(row_header_1, "Demographics")
-
-j <- add_empty_row(j)
-
-############################################
 # AGE - categorical
 
-row_header_1 <- c(
-  row_header_1,
-  "Age (years)",
-  "< 65",
-  "65-74",
-  "75-84",
-  "85+"
-)
+# row_header_1 <- c(row_header_1, "Età alla data indice,", "  mediana (Q1 - Q3)")
+# j <- add_empty_row(j)
+# j <- descriptive_median_q1q3(j, "age")
+# 
+# add_asd(j, "age")
 
-j <- add_empty_row(j)
+# cancro metastatico
+row_header_1 <- c(row_header_1, "Cancro metastatico")
+j <- descriptive_N_perc(j, "metastatic_")
 
-j <- descriptive_N_perc(j, "age_cat_<65_")
-add_asd(j, "age_cat")
+add_asd(j - 1, "metastatic")
 
-j <- descriptive_N_perc(j, "age_cat_65-74_")
-j <- descriptive_N_perc(j, "age_cat_75-84_")
-j <- descriptive_N_perc(j, "age_cat_>=85_")
 
 ############################################
-# gender
+# Patologie concomitanti
 
-row_header_1 <- c(
-  row_header_1,
-  "Gender N (%)",
-  "Male",
-  "Female",
-  "Other"
-)
-
-j <- add_empty_row(j)
-
-j <- descriptive_N_perc(j, "gender_M_")
-j <- descriptive_N_perc(j, "gender_F_")
-j <- descriptive_N_perc(j, "gender_O_")
-
-add_asd(j - 2, "gender")
-
-############################################
-# COMORBIDITIES
-
-row_header_1 <- c(row_header_1, "Comorbidities N (%)")
-
+row_header_1 <- c(row_header_1, "Patologie concomitanti")
 j <- add_empty_row(j)
 
 ############################################
-# CKD
+# Ipertensione
+row_header_1 <- c(row_header_1, "Ipertensione")
+j <- descriptive_N_perc(j, "iperten_")
 
-row_header_1 <- c(
-  row_header_1,
-  "Chronic Kidney Disease N (%)",
-  "Stage 1-4",
-  "Stage 5"
-)
-
-j <- add_empty_row(j)
-
-j <- descriptive_N_perc(j, "CKD_1-4_")
-j <- descriptive_N_perc(j, "CKD_5_")
-
-add_asd(j - 1, "CKD")
+add_asd(j, "iperten")
 
 ############################################
-# binary comorbidities
+# Cardiopatia ischemica
+row_header_1 <- c(row_header_1, "Cardiopatia ischemica")
+j <- descriptive_N_perc(j, "cardioisc_")
 
-for (cov in thiscovariates_bin[1:14]) {
-  name_cov <- unlist(parameters_this_step[values == cov,.(get("name in protocol"))])
-  row_header_1 <- c(row_header_1, name_cov)
-  j <- descriptive_N_perc(j, paste0(cov,"_"))
-  add_asd(j, cov)
-}
+add_asd(j, "iperten")
 
 ############################################
-# COMEDICATIONS
+# Infarto miocardico
+row_header_1 <- c(row_header_1, "Infarto miocardico")
+j <- descriptive_N_perc(j, "infart_")
 
-row_header_1 <- c(row_header_1, "Comedications N (%)")
-
-j <- add_empty_row(j)
-
-for (cov in thiscovariates_bin[15:37]) {
-  name_cov <- unlist(parameters_this_step[values == cov,.(get("name in protocol"))])
-  row_header_1 <- c(row_header_1, name_cov)
-  j <- descriptive_N_perc(j, paste0(cov,"_"))
-  add_asd(j, cov)
-}
+add_asd(j, "infart")
 
 ############################################
-# LIFESTYLE
+# Aritmie
+row_header_1 <- c(row_header_1, "Aritmie")
+j <- descriptive_N_perc(j, "arit_")
 
-row_header_1 <- c(row_header_1, "Lifestyle N (%)")
+add_asd(j, "arit")
 
+############################################
+# Aritmie
+row_header_1 <- c(row_header_1, "Angina")
+j <- descriptive_N_perc(j, "angi_")
+
+add_asd(j, "angi")
+
+############################################
+# Ictus ischemico o emorragico
+row_header_1 <- c(row_header_1, "Ictus ischemico o emorragico")
+j <- descriptive_N_perc(j, "ictus_")
+
+add_asd(j, "ictus")
+
+############################################
+# Attacco ischemico transitorio (TIA)
+row_header_1 <- c(row_header_1, "Attacco ischemico transitorio (TIA)")
+j <- descriptive_N_perc(j, "tia_")
+
+add_asd(j, "tia")
+
+############################################
+# Scompenso cardiaco
+row_header_1 <- c(row_header_1, "Scompenso cardiaco")
+j <- descriptive_N_perc(j, "scompcard_")
+
+add_asd(j, "scompcard")
+
+############################################
+# Dislipidemia
+row_header_1 <- c(row_header_1, "Dislipidemia")
+j <- descriptive_N_perc(j, "dislip_")
+
+add_asd(j, "dislip")
+
+############################################
+# Diabete mellito
+row_header_1 <- c(row_header_1, "Diabete mellito")
+j <- descriptive_N_perc(j, "diab_")
+
+add_asd(j, "diab")
+
+############################################
+# Insufficienza renale cronica
+row_header_1 <- c(row_header_1, "Insufficienza renale cronica")
+j <- descriptive_N_perc(j, "renal_") 
+
+add_asd(j, "renal")
+
+############################################
+# Farmaci concomitanti
+row_header_1 <- c(row_header_1, "Farmaci concomitanti")
 j <- add_empty_row(j)
 
 ############################################
-# Tobacco use imputed
+# Corticosteroidi
+row_header_1 <- c(row_header_1, "Corticosteroidi")
+j <- descriptive_N_perc(j, "cortic_")
 
-row_header_1 <- c(
-  row_header_1,
-  "Tobacco use with missing imputed as 'none'",
-  "None",
-  "Past",
-  "Current"
-)
-
-j <- add_empty_row(j)
-
-j <- descriptive_N_perc(j, "Smoking_imputed_0_")
-j <- descriptive_N_perc(j, "Smoking_imputed_1_")
-j <- descriptive_N_perc(j, "Smoking_imputed_2_")
-
-add_asd(j - 2, "Smoking_imputed")
+add_asd(j, "cortic")
 
 ############################################
-# ESTABLISHED ACVD
+# Antianginosi
+row_header_1 <- c(row_header_1, "Antianginosi")
+j <- descriptive_N_perc(j, "antiang_") 
 
-row_header_1 <- c(row_header_1, "Established ACVD")
-
-j <- add_empty_row(j)
-
-for (cov in thiscovariates_bin[38:39]) {
-  name_cov <- unlist(parameters_this_step[values == cov,.(get("name in protocol"))])
-  row_header_1 <- c(row_header_1, name_cov)
-  j <- descriptive_N_perc(j, paste0(cov,"_"))
-  add_asd(j, cov)
-}
+add_asd(j, "antiang")
 
 ############################################
-# ACVD RISK FACTORS
+# Antitrombotici
+row_header_1 <- c(row_header_1, "Antitrombotici")
+j <- descriptive_N_perc(j, "antitromb_") 
 
-row_header_1 <- c(row_header_1, "ACVD Risk factors")
+add_asd(j, "antitromb")
 
-j <- add_empty_row(j)
+############################################
+# Ipolipemizzanti
+row_header_1 <- c(row_header_1, "Ipolipemizzanti")
+j <- descriptive_N_perc(j, "ipolip_")
 
-for (cov in thiscovariates_bin[40:42]) {
-  name_cov <- unlist(parameters_this_step[values == cov,.(get("name in protocol"))])
-  row_header_1 <- c(row_header_1, name_cov)
-  j <- descriptive_N_perc(j, paste0(cov,"_"))
-  add_asd(j, cov)
-}
+add_asd(j, "ipolip")
+
+############################################
+# Antidiabetici
+row_header_1 <- c(row_header_1, "Antidiabetici")
+j <- descriptive_N_perc(j, "antidiab_")
+
+add_asd(j, "antidiab")
+
+############################################
+# Bifosfonati
+row_header_1 <- c(row_header_1, "Bifosfonati")
+j <- descriptive_N_perc(j, "bifosf_")
+
+add_asd(j, "bifosf")
+
+############################################
+# Trattamenti concomitanti
+row_header_1 <- c(row_header_1, "Trattamenti concomitanti")
+j <- descriptive_N_perc(j, "conc_treat_")
+
+add_asd(j, "conc_treat")
+
+
 
 #########################################
 # KEEP CELLS
 
 cell_cols <- grep("^cell_", names(tab_nice), value = TRUE)
 
-tokeep <- c("ds_subpop","stratum","W",cell_cols)
+tokeep <- c("stratum","W",cell_cols)
 
 tab_nice <- tab_nice[, ..tokeep]
 
@@ -442,18 +378,18 @@ tab_nice <- tab_nice[, ..tokeep]
 
 tab_nice <- melt(
   tab_nice,
-  id.vars = c("ds_subpop","stratum","W"),
+  id.vars = c("stratum","W"),
   measure.vars = patterns(cell = "^cell_[0-9]+$"),
   variable.name = "rownum"
 )
 
 tab_nice[, rownum := as.integer(rownum)]
 
-setorder(tab_nice, rownum, ds_subpop, stratum, W)
+setorder(tab_nice, rownum, stratum, W)
 
 tab_nice <- dcast(
   tab_nice,
-  rownum ~ ds_subpop + stratum + W,
+  rownum ~ stratum + W,
   value.var = "value"
 )
 
@@ -468,44 +404,30 @@ tab_nice[, rownum := NULL]
 #########################################
 # ORDER COLUMNS
 
-ordered_ds <- list_ds_analysed
-
-ordered_cols <- c(
-  "row_header",
-  as.vector(rbind(
-    paste0(
-      ordered_ds,
-      c(
-        "_exposed_BF",
-        "_comparators_BF",
-        "_asd_BF",
-        "_exposed_AF",
-        "_comparators_AF",
-        "_asd_AF"
-      )
-    )
-  ))
-)
+ordered_cols <- c("row_header",
+                  "exposed_BF",
+                  "comparators_BF",
+                  "asd_BF",
+                  "exposed_AF",
+                  "comparators_AF",
+                  "asd_AF")
 
 setcolorder(tab_nice, ordered_cols)
 
 #########################################
 # SAVE
-
-suffix <- "_all_datasources"
-
 outputfile <- tab_nice
 
-nameoutput <- paste0("D6_Table_3_asd_before_after_weighting",suffix)
+nameoutput <- "D6_Tab_3_asd_prima_dopo_pesi"
 
 assign(nameoutput, outputfile)
 
 saveRDS(outputfile, file = file.path(thisdiroutput, paste0(nameoutput,".rds")))
-fwrite(outputfile, file = file.path(thisdiroutput, paste0(nameoutput,".csv")))
-write_xlsx(outputfile, file.path(thisdiroutput, paste0(nameoutput,".xlsx")))
+fwrite(outputfile, file = file.path(thisdiroutput, paste0(nameoutput,".csv")), col.names = FALSE)
+write_xlsx(outputfile, file.path(thisdiroutput, paste0(nameoutput,".xlsx")), col_names = FALSE)
 
-html_table <- kable(outputfile, format = "html", escape = FALSE) %>% kable_styling(full_width = F, bootstrap_options = c("striped", "hover"))
-writeLines(html_table, file.path(thisdiroutput, paste0(nameoutput,".html")))
+# html_table <- kable(outputfile, format = "html", escape = FALSE) %>% kable_styling(full_width = F, bootstrap_options = c("striped", "hover"))
+# writeLines(html_table, file.path(thisdiroutput, paste0(nameoutput,".html")))
 
-doc <- read_docx() %>% body_add_table(outputfile, style = "table_template") %>% body_end_section_continuous()
+doc <- read_docx() %>% body_add_table(outputfile, style = "table_template", header = FALSE) %>% body_end_section_continuous()
 print(doc, target = file.path(thisdiroutput, paste0(nameoutput,".docx")))

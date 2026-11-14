@@ -1,50 +1,39 @@
 ############################################################
 #                                                          #
-####         Create 07_T4_40_Create_D5_Table_3_asd_before_after_trimming.R         #
+####         Crea D5_Tab_3_asd_prima_dopo_pesi             #
 #                                                          #
 ############################################################
 
-# authors: Sofia Miniati, Rosa Gini
+# autori: Sofia Miniati, Rosa Gini, Sabrina Giometto
 
-# v 1.1 4 Sep 2026
+# v 1.0 12 Nov 2026
 
-# added OR
-
-# v 0.2 (with aSD)
-
-print('CREATE D5_Table_3_asd_before_after_trimming.R')
+print('CREA D5_Tab_3_asd_prima_dopo_pesi')
 
 #########################################
-# assign directories
+# assegnazione cartelle
 
 if (TEST){
-  testname <- "test_23_D5_Table_3"
+  testname <- "test_D5_Tab_3"
   thisdirinput <- file.path(dirtest,testname)
   thisdiroutput <- file.path(dirtest,testname,"g_output/")
-  thisdirsettings <- thisdirinput
   dir.create(thisdiroutput, showWarnings = F)
 }else{
   thisdirinput <- dirtemp
-  thisdirexp <- direxp
   thisdiroutput <- dirtemp
-  thisdirsettings <- dirpargen
 }
+
 #########################################
-# load
+# caricamento dati
+thisdirarchive <- file.path(thisdir, "p_parameters", "archive_parameters")
 
-# from settings: create the list of subpopulations
-settings <- readRDS(file.path(thisdirsettings,"SETTINGS.rds"))
-thissubpopulations <- unique(settings[,.(subpop)])
-thissubpopulations <- unlist(strsplit(trimws(thissubpopulations), " +"))
+# lista covariate
+parameters_this_step <- as.data.table(unique(readxl::read_excel(file.path(thisdirarchive, "codebooks", "D4_esp_comp_baseline_pesi.xlsx"), 1)))
 
-
-parameters_this_step <- as.data.table(unique(readxl::read_excel(file.path(dirarchive,"codebooks",paste0("D5_Table_3.xlsx")),1)))
+thiscovariates_bin <- unlist(parameters_this_step[parameter == "covar_bin",.(value)])
 
 
-thiscovariates_bin <- unlist(parameters_this_step[parameter == "covar_bin",.(values)])
-thiscovariates_cat <- unlist(parameters_this_step[parameter == "covar_cat",.(values)]) #[-1]
-thiscovariates_cont <- unlist(parameters_this_step[parameter == "covar_cont",.(values)])
-
+# helpers
 wtd_mean <- function(x, w) {
   ok <- !is.na(x) & !is.na(w)
   sum(x[ok] * w[ok]) / sum(w[ok])
@@ -214,193 +203,105 @@ desc_continuous <- function(processing, dataset, inputvar, outputvar, vartot = "
 }
 
 
+  
+#########################################
+# caricamento dati input
 
-subpop <- "all"
+allstrata <- readRDS(file.path(thisdirinput, "D4_esp_comp_pesi.rds"))
+weights <-  readRDS(file.path(thisdirinput, "D4_esp_comp_pesi_troncati_trimmed.rds"))
+weights <- weights[,.(person_id, t0, exposure, truncated_weight)]
+or <- readRDS(file.path(thisdirinput, "D5_PS_model_OR.rds"))
 
-for (subpop in thissubpopulations) {
-  suffix <- fifelse(subpop == "all","",paste0("_",subpop))
-  print(suffix)
-  
-  #########################################
-  # load input dataset
-  
-  allstrata <- readRDS(file.path(thisdirinput, paste0("D4_EXP_ACT_COV_WEIGHT",suffix,".rds")))
-  
-  weights <-  readRDS(file.path(thisdirinput, paste0("D4_EXP_ACT_COV_WEIGHT_TRUNCATED",suffix,".rds")))
-  weights <- weights[,.(person_id, t0, exposure, truncated_weight)]
-  
-  or <- readRDS(file.path(thisdirexp, paste0("D5_PS_model_OR",suffix,".rds")))
-  
-  # setnames(base, names(base), gsub("_at_t0", "", names(base)))
-  or[, variable := gsub("_at_t0", "", variable)]
-  
-  
-  
-  allstrata <- merge(allstrata, weights , by = c("person_id", "t0", "exposure"), all.x = T)
-  allstrata[is.na(truncated_weight), truncated_weight := 0]
-  allstrata[, stratum := fifelse(exposure == 1, "exposed", "comparators")]
-  
-  #########################################
-  # UNWEIGHTED descriptive table
-  
-  processing <- allstrata[, .(N_ = .N), by = "stratum"]
-  
-  for (covar in thiscovariates_cat) {
-    namevar <- paste0(covar, "_at_t0")
-    listofvaluesthisvar <- unname(unlist(unique(parameters_this_step[parameter == paste0(covar,"value"), .(values)])))
-    processing <- desc_cat(processing, dataset = allstrata, inputvar = namevar, listofvalues = listofvaluesthisvar,
-                           outputvar = covar, vartot = "N_", compute_Nmissing = TRUE)
-  }
-  
-  for (covar in thiscovariates_cont) {
-    namevar <- paste0(covar, "_at_t0")
-    allstrata[, (namevar) := as.numeric(get(namevar))]
-    processing <- desc_continuous(processing, dataset = allstrata, inputvar = namevar, outputvar = covar,
-                                  vartot = "N_", compute_Nmissing = TRUE)
-  }
-  
-  for (covar in thiscovariates_bin) {
-    namevar <- paste0(covar, "_at_t0")
-    processing <- desc_binary(processing, dataset = allstrata,  inputvar = namevar, outputvar = covar,
-                              vartot = "N_", compute_Nmissing = FALSE)
-  }
-  
-  #########################################
-  # WEIGHTED descriptive table
-  
-  processing_w <- allstrata[, .(Nw_ = round(sum(truncated_weight, na.rm = TRUE), 1)), by = "stratum"]
-  
-  for (covar in thiscovariates_cat) {
-    namevar <- paste0(covar, "_at_t0")
-    listofvaluesthisvar <- unname(unlist(unique(parameters_this_step[parameter == paste0(covar,"value"), .(values)])))
-    processing_w <- desc_cat(processing_w, dataset = allstrata, inputvar = namevar, listofvalues = listofvaluesthisvar,
-                             outputvar = covar, vartot = "Nw_", compute_Nmissing = TRUE,
-                             weightvar = "truncated_weight")
-  }
-  
-  for (covar in thiscovariates_cont) {
-    namevar <- paste0(covar, "_at_t0")
-    processing_w <- desc_continuous(processing_w, dataset = allstrata, inputvar = namevar, outputvar = covar,
-                                    vartot = "Nw_", compute_Nmissing = TRUE,
-                                    weightvar = "truncated_weight")
-  }
-  
-  for (covar in thiscovariates_bin) {
-    namevar <- paste0(covar, "_at_t0")
-    processing_w <- desc_binary(processing_w, dataset = allstrata, inputvar = namevar, outputvar = covar,
-                                vartot = "Nw_", compute_Nmissing = FALSE,
-                                weightvar = "truncated_weight")
-  }
-  
-  # tag every weighted column (except the join key) so it doesn't clash with the unweighted names
-  
-  setnames(processing, setdiff(names(processing), "stratum"),
-           paste0(setdiff(names(processing), "stratum"), "BF"))
-  
-  setnames(processing_w, "Nw_", "N_")
-  setnames(processing_w, setdiff(names(processing_w), "stratum"),
-           paste0(setdiff(names(processing_w), "stratum"), "AF"))
-  
-  #########################################
-  # merge unweighted + weighted descriptive tables
-  
-  processing <- merge(processing, processing_w, by = "stratum")
-  
-  #########################################
-  # ASD, unweighted and weighted
-  
-  for (covar in thiscovariates_bin) {
-    varname <- paste0(covar, "_at_t0")
-    x1 <- allstrata[stratum == "exposed", get(varname)]
-    x0 <- allstrata[stratum == "comparators", get(varname)]
-    w1 <- allstrata[stratum == "exposed", truncated_weight]
-    w0 <- allstrata[stratum == "comparators", truncated_weight]
-    processing[, asd   := asd_bin(x1, x0)]
-    processing[, asd_w := asd_bin(x1, x0, w1, w0)]
-    setnames(processing, c("asd","asd_w"), c(paste0(covar,"_asd_BF"), paste0(covar,"_asd_AF")))
-  }
-  
-  for (covar in thiscovariates_cont) {
-    varname <- paste0(covar, "_at_t0")
-    x1 <- allstrata[stratum == "exposed", get(varname)]
-    x0 <- allstrata[stratum == "comparators", get(varname)]
-    w1 <- allstrata[stratum == "exposed", truncated_weight]
-    w0 <- allstrata[stratum == "comparators", truncated_weight]
-    processing[, asd   := asd_cont(x1, x0)]
-    processing[, asd_w := asd_cont(x1, x0, w1, w0)]
-    setnames(processing, c("asd","asd_w"), c(paste0(covar,"_asd_BF"), paste0(covar,"_asd_AF")))
-  }
-  
-  for (covar in thiscovariates_cat) {
-    varname <- paste0(covar, "_at_t0")
-    x1 <- allstrata[stratum == "exposed", get(varname)]
-    x0 <- allstrata[stratum == "comparators", get(varname)]
-    w1 <- allstrata[stratum == "exposed", truncated_weight]
-    w0 <- allstrata[stratum == "comparators", truncated_weight]
-    processing[, asd   := asd_cat(x1, x0)]
-    processing[, asd_w := asd_cat(x1, x0, w1, w0)]
-    setnames(processing, c("asd","asd_w"), c(paste0(covar,"_asd_BF"), paste0(covar,"_asd_AF")))
-  }
-  
-  processing[, exposure := fifelse(stratum == "exposed", 1, 0) ]
-  
-  
-  #############################
-  # OR
-  
-  
-  for (covar in c(thiscovariates_cat)) {
-    orcovar <- copy(or)[variable == covar,]
-    nrowcovar <- nrow(orcovar)
-    if (nrowcovar > 0) {
-      for (j in 1:nrowcovar ) {
-        thisvalue <- orcovar[j]$level
-        thisor <- orcovar[j]$OR
-        thisll <- orcovar[j]$CI_lower
-        thisul <- orcovar[j]$CI_upper
-        print(covar)
-        print(thisvalue)
-        for (par in c("or_","ll_","ul_")) {
-          namevar <- paste0(covar,"_",thisvalue,"_",par)
-          thisval <- as.character(get(paste0("this",substr(par, 1, nchar(par) - 1))))
-          processing[, (namevar) := fifelse(str_length(thisval) > 0, round(as.numeric(thisval),3),NA_real_)]
-          
-        }
-      }
-    }
-  }
-  
-  for (covar in c(thiscovariates_cont, thiscovariates_bin)) {
-    orcovar <- copy(or)[variable == covar,]
-    nrowcovar <- nrow(orcovar)
-    if (nrowcovar > 0) {
-      for (j in 1) {
-        # thisvalue <- orcovar[j]$level
-        thisor <- orcovar[j]$OR
-        thisll <- orcovar[j]$CI_lower
-        thisul <- orcovar[j]$CI_upper
-        # print(covar)
-        # print(thisvalue)
-        for (par in c("or_","ll_","ul_")) {
-          namevar <- paste0(covar,"_",par)
-          thisval <- as.character(get(paste0("this",substr(par, 1, nchar(par) - 1))))
-          processing[, (namevar) := fifelse(str_length(thisval) > 0, round(as.numeric(thisval),3),NA_real_)]
-          
-        }
-      }
-    }
-  }
-  
-  
-  
-  #########################################
-  # SAVE
-  
-  ordercols <- c("stratum", "exposure", setdiff(names(processing), c("stratum", "exposure")))
-  processing <- processing[, ..ordercols]
- 
-  nameoutput <- "D5_Table_3_asd_before_after_trimming"
-  nameoutputext <- paste0(nameoutput,suffix,".rds")
-  assign(nameoutput, processing)
-  saveRDS(processing, file = file.path(thisdiroutput, nameoutputext))
+allstrata <- merge(allstrata, weights , by = c("person_id", "t0", "exposure"), all.x = T)
+allstrata[is.na(truncated_weight), truncated_weight := 0]
+allstrata[, stratum := fifelse(exposure == 1, "exposed", "comparators")]
+
+#########################################
+# tabelle descrittive non pesate
+
+processing <- allstrata[, .(N_ = .N), by = "stratum"]
+
+for (covar in thiscovariates_bin) {
+  namevar <- covar
+  processing <- desc_binary(processing, dataset = allstrata,  inputvar = namevar, outputvar = covar,
+                            vartot = "N_", compute_Nmissing = FALSE)
 }
+
+#########################################
+# tabelle descrittive pesate
+
+processing_w <- allstrata[, .(Nw_ = round(sum(truncated_weight, na.rm = TRUE), 1)), by = "stratum"]
+
+for (covar in thiscovariates_bin) {
+  namevar <- covar
+  processing_w <- desc_binary(processing_w, dataset = allstrata, inputvar = namevar, outputvar = covar,
+                              vartot = "Nw_", compute_Nmissing = FALSE,
+                              weightvar = "truncated_weight")
+}
+
+
+setnames(processing, setdiff(names(processing), "stratum"),
+         paste0(setdiff(names(processing), "stratum"), "BF"))
+
+setnames(processing_w, "Nw_", "N_")
+setnames(processing_w, setdiff(names(processing_w), "stratum"),
+         paste0(setdiff(names(processing_w), "stratum"), "AF"))
+
+#########################################
+# unione tabelle descrittive pesate e non pesate
+
+processing <- merge(processing, processing_w, by = "stratum")
+
+#########################################
+# ASD, non pesati e pesati
+
+for (covar in thiscovariates_bin) {
+  varname <- covar
+  x1 <- allstrata[stratum == "exposed", get(varname)]
+  x0 <- allstrata[stratum == "comparators", get(varname)]
+  w1 <- allstrata[stratum == "exposed", truncated_weight]
+  w0 <- allstrata[stratum == "comparators", truncated_weight]
+  processing[, asd   := asd_bin(x1, x0)]
+  processing[, asd_w := asd_bin(x1, x0, w1, w0)]
+  setnames(processing, c("asd","asd_w"), c(paste0(covar,"_asd_BF"), paste0(covar,"_asd_AF")))
+}
+
+processing[, exposure := fifelse(stratum == "exposed", 1, 0) ]
+
+
+#############################
+# OR
+
+for (covar in thiscovariates_bin) {
+  orcovar <- copy(or)[variable == covar,]
+  nrowcovar <- nrow(orcovar)
+  if (nrowcovar > 0) {
+    for (j in 1) {
+      # thisvalue <- orcovar[j]$level
+      thisor <- orcovar[j]$OR
+      thisll <- orcovar[j]$CI_lower
+      thisul <- orcovar[j]$CI_upper
+      # print(covar)
+      # print(thisvalue)
+      for (par in c("or_","ll_","ul_")) {
+        namevar <- paste0(covar,"_",par)
+        thisval <- as.character(get(paste0("this",substr(par, 1, nchar(par) - 1))))
+        processing[, (namevar) := fifelse(str_length(thisval) > 0, round(as.numeric(thisval),3),NA_real_)]
+        
+      }
+    }
+  }
+}
+
+
+
+#########################################
+# salvataggio
+
+ordercols <- c("stratum", "exposure", setdiff(names(processing), c("stratum", "exposure")))
+processing <- processing[, ..ordercols]
+
+nameoutput <- "D5_Tab_3_asd_prima_dopo_pesi"
+nameoutputext <- paste0(nameoutput, ".rds")
+assign(nameoutput, processing)
+saveRDS(processing, file = file.path(thisdiroutput, nameoutputext))

@@ -124,7 +124,7 @@ data[,random := NULL]
 # esposizione dipendente da metastatic (modello logistico)
 set.seed(1252)
 alpha0 <- -0.5
-alpha1 <- 1.2
+alpha1 <- 3
 p_drug <- 1/ (1+exp(-(alpha0+alpha1*data$metastatic)))
 data[, exposure := rbinom(.N, size=1, prob=p_drug)]
 
@@ -134,20 +134,20 @@ data[, interruzione:= 1]
 # switch
 set.seed(148)
 alpha0 <- -0.5
-alpha1 <- 1.4
+alpha1 <- -1.4
 p_switch <- 1/ (1+exp(-(alpha0+alpha1*data$exposure)))
 data[, switch := rbinom(.N, size=1, prob=p_switch)]
 
 # morte
-set.seed(898)
-alpha0 <- -0.5
-alpha1 <- 1.8
-p_morte <- 1/ (1+exp(-(alpha0+alpha1*data$metastatic)))
-data[, morte := rbinom(.N, size=1, prob=p_morte)]
+# set.seed(898)
+# alpha0 <- -0.5
+# alpha1 <- 1.8
+# p_morte <- 1/ (1+exp(-(alpha0+alpha1*data$metastatic)))
+# data[, morte := rbinom(.N, size=1, prob=p_morte)]
 
 
 # filtro
-to_keep <- c("exposure", "age", covariates_binary, "interruzione", "switch", "morte")
+to_keep <- c("exposure", "age", covariates_binary, "interruzione", "switch")
 variables <- data[,..to_keep]
 
 # rimozione variabili costanti
@@ -167,15 +167,19 @@ variables_clean <- variables[, !const_cols, with = FALSE]
 
 # controllo distribuzione
 data[, .N, .(metastatic, exposure)]
-data[, .N, .(metastatic, morte)]
+# data[, .N, .(metastatic, morte)]
 data[, .N, .(switch, exposure)]
 
+
+#############################################
+
 # parametri per tempo_causa_1 (morte)
-b0_out <- 7.3
-b1_out <- 0
-b2_out <- -1.2 #effetto di metastatic su outcome
-b3_age <- -0.04 #effetto di age su outcome
-sig_out <- 0.08
+b0_out  <- 9.5
+b1_out  <- 0
+b2_out  <- -2.0
+b3_age  <- -0.02
+sig_out <- 0.7
+H <- 3650   # orizzonte di accertamento della morte (giorni)
 
 b_scompcard <- -0.45
 b_infart <- -0.35
@@ -187,9 +191,9 @@ b1_c2 <- 0
 sig_c2 <- 0.4
 
 # parametri per tempo_causa_3 (fine_finestra_studio)
-b0_c3 <- 7.1
-b1_c3 <- 0
-sig_c3 <- 0.3
+# b0_c3 <- 7.1
+# b1_c3 <- 0
+# sig_c3 <- 0.3
 
 # parametri per tempo_causa_4 (fine_studio)
 b0_c4 <- 7.2
@@ -204,7 +208,7 @@ sig_int <- 0.65
 
 # parametri per tempo_switch
 b0_sw <- 5.8
-b1_sw <- 0.8
+b1_sw <- -0.8
 b2_sw <- 0
 sig_sw <- 0.65
 
@@ -215,20 +219,27 @@ simulazione <- function(b0, b1, trt, b2, meta, b3, age, sigma) {
 }
 
 # tempi causa_censura_j
-data[, tempo_causa_1 := simulazione(b0_out, b1_out, exposure, 1, (b2_out * metastatic) + 
-                                      (b3_age * (age - mean(age, na.rm = TRUE))) + 
-                                      (b_scompcard * scompcard) + 
-                                      (b_infart * infart) + 
-                                      (b_ictus * ictus),0, 0, sig_out)]
+# data[, tempo_causa_1 := simulazione(b0_out, b1_out, exposure, 1, (b2_out * metastatic) + 
+#                                       (b3_age * (age - mean(age, na.rm = TRUE))) + 
+#                                       (b_scompcard * scompcard) + 
+#                                       (b_infart * infart) + 
+#                                       (b_ictus * ictus),0, 0, sig_out)]
+data[, lp_out := b0_out + b1_out * exposure + b2_out * metastatic +
+       b3_age * (age - mean(age)) +
+       b_scompcard * scompcard + b_infart * infart + b_ictus * ictus]
+set.seed(898)
+data[, tempo_causa_1 := exp(lp_out) * (-log(runif(.N)))^sig_out]
+
+data[, morte := as.integer(tempo_causa_1 <= H)]
 data[, tempo_causa_2 := simulazione(b0_c2, b1_c2, exposure, 0, 0, 0, 0, sig_c2)]
-data[, tempo_causa_3 := simulazione(b0_c3, b1_c3, exposure, 0, 0, 0, 0, sig_c3)]
+data[, tempo_causa_3 := 365]
 data[, tempo_causa_4 := simulazione(b0_c4, b1_c4, exposure, 0, 0, 0, 0, sig_c4)]
 
 # tempi interruzione e switch
 data[, tempo_interruzione := simulazione(b0_int, b1_int, exposure, 0, 0, 0, 0, sig_int)]
 data[, tempo_switch := simulazione(b0_sw, b1_sw, exposure, b2_sw, 0, 0, 0, sig_sw)]
 
-data[, tempo_causa_1:= ifelse(morte ==1, tempo_causa_1, NA)]
+# data[, tempo_causa_1:= ifelse(morte ==1, tempo_causa_1, NA)]
 
 # tempo censura
 data[, tempo_censura := pmin(tempo_causa_1, tempo_causa_2, tempo_causa_3, tempo_causa_4, na.rm = TRUE)]
@@ -384,43 +395,43 @@ data[
 # verifica parametri su ogni variabile
 #tratto il tempo simulato come evento di interesse
 
-data[, .N, causa_censura]
-
-fit_grezzo <- coxph(Surv(tempo_censura, outcome) ~ exposure, 
-                    data = data)
-fit_grezzo
-
-prop.table(table(data$metastatic, data$exposure), margin=2)*100
-
-fit_cox_ipw <- coxph(Surv(tempo_censura, outcome) ~ exposure, 
-                     data = data[in_overlap_tmp == 1], 
-                     weights = truncated_weight,
-                     robust = TRUE)
-
-fit_cox_ipw
-
-hr_grezzo <- exp(coef(fit_grezzo))
-hr_grezzo
-
-hr_ipw <- exp(coef(fit_cox_ipw))
-hr_ipw
-
-weighted_table <- data[, .(
-  pct_metastatic_0 = sum(weight[metastatic == 0]) / sum(weight),
-  pct_metastatic_1 = sum(weight[metastatic == 1]) / sum(weight)
-), by = exposure]
-
-weighted_table
-
-summary(data$weight)
-
-smd <- function(x, g, w = rep(1, length(x))) {
-  m1 <- weighted.mean(x[g == 1], w[g == 1])
-  m0 <- weighted.mean(x[g == 0], w[g == 0])
-  (m1 - m0) / sqrt((m1 * (1 - m1) + m0 * (1 - m0)) / 2)
-}
-smd(data$metastatic, data$exposure) # prima
-smd(data$metastatic, data$exposure, data$weight) #dopo
+# data[, .N, causa_censura]
+# 
+# fit_grezzo <- coxph(Surv(tempo_censura, outcome) ~ exposure, 
+#                     data = data)
+# fit_grezzo
+# 
+# prop.table(table(data$metastatic, data$exposure), margin=2)*100
+# 
+# fit_cox_ipw <- coxph(Surv(tempo_censura, outcome) ~ exposure, 
+#                      data = data[in_overlap_tmp == 1], 
+#                      weights = truncated_weight,
+#                      robust = TRUE)
+# 
+# fit_cox_ipw
+# 
+# hr_grezzo <- exp(coef(fit_grezzo))
+# hr_grezzo
+# 
+# hr_ipw <- exp(coef(fit_cox_ipw))
+# hr_ipw
+# 
+# weighted_table <- data[, .(
+#   pct_metastatic_0 = sum(weight[metastatic == 0]) / sum(weight),
+#   pct_metastatic_1 = sum(weight[metastatic == 1]) / sum(weight)
+# ), by = exposure]
+# 
+# weighted_table
+# 
+# summary(data$weight)
+# 
+# smd <- function(x, g, w = rep(1, length(x))) {
+#   m1 <- weighted.mean(x[g == 1], w[g == 1])
+#   m0 <- weighted.mean(x[g == 0], w[g == 0])
+#   (m1 - m0) / sqrt((m1 * (1 - m1) + m0 * (1 - m0)) / 2)
+# }
+# smd(data$metastatic, data$exposure) # prima
+# smd(data$metastatic, data$exposure, data$weight) #dopo
 
 
 
