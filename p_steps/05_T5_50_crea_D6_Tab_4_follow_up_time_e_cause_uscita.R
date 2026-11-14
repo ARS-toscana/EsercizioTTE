@@ -20,7 +20,7 @@ if (TEST){
   thisdiroutput <- file.path(dirtest,testname,"g_output")
   dir.create(thisdiroutput, showWarnings = F)
 }else{
-  thisdirinput <- direxp
+  thisdirinput <- dirtemp
   thisdiroutput <- direxp
 }
 
@@ -81,10 +81,10 @@ add_empty_row <- function(j){
 
 causelab <- list()
 
-  causelab[["1"]] <- "Morte"
-  causelab[["2"]]  <- "Fine osservazione persona"
-  causelab[["3"]]  <- "Fine finestra studio"
-  causelab[["4"]]  <- "Fine studio"
+causelab[["1"]] <- "Morte"
+causelab[["2"]]  <- "Fine osservazione persona"
+causelab[["3"]]  <- "Fine finestra studio"
+causelab[["4"]]  <- "Fine studio"
 
 causes_of_end_fup <- c(1:4)
 
@@ -120,56 +120,56 @@ tab_nice[, cell := N_]
 setnames(tab_nice, "cell", paste0("cell_",j))
 
   
-  # rows 2-4
-  
-  row_header_1 <- c(row_header_1,
-                    "Giorni-persona di follow-up",
-                    "Mediana (Q1 - Q3)",
-                    "Min - Max")
-  
-  j <- add_empty_row(j)
-  j <- descriptive_continuous(j, "tempo_censura")
-  
-  # Cause di fine folluw-up
-  
-  row_header_1 <- c(row_header_1, "Cause di fine folluw-up")
-  
-  j <- add_empty_row(j)
-  
-  for (cause in causes_of_end_fup) {
-    row_header_1 <- c(row_header_1,
-                      paste0(causelab[[cause]], ": N (%)"),
-                      paste0("         ", " Tempo all'evento, Mediana (Q1 - Q3)")
-    )
-    
-    j <- descriptive_N_perc(j, paste0("causa_censura_",cause,"_"))
-    j <- descriptive_continuous(j, paste0("tempo_causa_",cause,""), minmax = 0)
-  }  
-  
-  # Eventi intercorrenti che non causano fine del follow-up
-  row_header_1 <- c(row_header_1,
-                    "Eventi intercorrenti che non causano fine del follow-up")
-  
-  j <- add_empty_row(j)
-  
-  # interruzione
-      row_header_1 <- c(row_header_1,
-                        "Interruzione: N (%)",
-                        "Tempo all'evento, Mediana (Q1 - Q3)")
-      
-      j <- descriptive_N_perc(j, "interruzione_pre_censura_")
-      j <- descriptive_continuous(j, "tempo_interruzione", minmax = 0)
-    
-      # switch
-      row_header_1 <- c(row_header_1,
-                        "Switch: N (%)",
-                        "Tempo all'evento, Mediana (Q1 - Q3)")
-      
-      j <- descriptive_N_perc(j, "switch_pre_censura_")
-      j <- descriptive_continuous(j, "tempo_switch", minmax = 0)
-  
+# rows 2-4
 
-  # View(tab_nice[, .SD, .SDcols = patterns("^cell_")])
+row_header_1 <- c(row_header_1,
+                  "Giorni-persona di follow-up",
+                  "Mediana (Q1 - Q3)",
+                  "Min - Max")
+
+j <- add_empty_row(j)
+j <- descriptive_continuous(j, "tempo_censura")
+
+# Cause di fine folluw-up
+
+row_header_1 <- c(row_header_1, "Cause di fine folluw-up")
+
+j <- add_empty_row(j)
+
+for (cause in causes_of_end_fup) {
+  row_header_1 <- c(row_header_1,
+                    paste0(causelab[[cause]], ": N (%)"),
+                    paste0("         ", " Tempo all'evento, Mediana (Q1 - Q3)")
+  )
+  
+  j <- descriptive_N_perc(j, paste0("causa_censura_",cause,"_"))
+  j <- descriptive_continuous(j, paste0("tempo_causa_",cause,""), minmax = 0)
+}  
+
+# Eventi intercorrenti che non causano fine del follow-up
+row_header_1 <- c(row_header_1,
+                  "Eventi intercorrenti che non causano fine del follow-up")
+
+j <- add_empty_row(j)
+
+# interruzione
+row_header_1 <- c(row_header_1,
+                  "Interruzione: N (%)",
+                  "Tempo all'evento, Mediana (Q1 - Q3)")
+
+j <- descriptive_N_perc(j, "interruzione_pre_censura_")
+j <- descriptive_continuous(j, "tempo_interruzione", minmax = 0)
+
+# switch
+row_header_1 <- c(row_header_1,
+                  "Switch: N (%)",
+                  "Tempo all'evento, Mediana (Q1 - Q3)")
+
+j <- descriptive_N_perc(j, "switch_pre_censura_")
+j <- descriptive_continuous(j, "tempo_switch", minmax = 0)
+
+
+# View(tab_nice[, .SD, .SDcols = patterns("^cell_")])
 
 #########################################
 # filtro
