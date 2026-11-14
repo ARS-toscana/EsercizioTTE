@@ -1,17 +1,13 @@
 ############################################################
 #                                                          #
-####   CREATE D3_OUTCOMES                              ####
-# 
+####   CREATE D3_outcome                                   #
+#                                                          #
 #                                                          #
 ############################################################
 
-# author: Rosa Gini
+# author: Rosa Gini, Sabrina Giometto
 
-# 1.1 29 JUl 2026
-
-# removed use of polars for SIDIAP
-
-# 1.0 21 Jul 2026
+# 1.0 14 Nov 2026
 
 #########################################
 # assign input and output directories
@@ -27,115 +23,56 @@ if (TEST){
 }else{
   thisdirinput <- dirtemp
   thisdiroutput <- dirtemp
-  thisdirsettings <- dirpargen
-  thisconcept_ids <- c("D_MAJORGIBLEED_AESI")
-  thisdirexp <- direxp
+  
 }
 
 #########################################
-# load input datasets
+# caricamento dati input
 
-print('CREATE D3_OUTCOMES')
+print('CREA D3_outcome')
 
-# from settings: create the list of subpopulations
-settings <- readRDS(file.path(thisdirsettings,"SETTINGS.rds"))
-thissubpopulations <- unique(settings[,.(subpop)])
-thissubpopulations <- unlist(strsplit(trimws(thissubpopulations), " +"))
+persons <- readRDS(file.path(thisdirinput, "D3_individui.rds"))
 
-ds <- settings$ds
+processing <- readRDS(file.path(thisdirinput, "D3_esp_comp.rds"))
 
 
-# in this file, all the meanings are used, filtering is done later
-# # use the parameter file SUBPOP and the function create_selection_rules_for_subpopulations to store the selection rule associated to each subpopulation. we handle the case when the parameter file does not exist (for example in some tests)
-# filesubpoppar <- file.path(thisdirsettings,"SUBPOP.rds")
-# if (file.exists(filesubpoppar)) {
-#   thisexcludemeaning <- create_selection_rules_for_subpopulations(filesubpoppar,thissubpopulations)
-# }else{
-#   thisexcludemeaning <- list()
-#   for (subpop in thissubpopulations) thisexcludemeaning[[subpop]] <- ""
-# }
+# data <- data.table(
+#   person_id = character(),
+#   date = as.Date(character()),
+#   meaning_renamed = character(),
+#   concept_id = character()
+# )
+# 
+# for (conc in thisconcept_ids) {
+#   fileparquet <- file.path(thisdirinput,paste0(conc,"_dataset",".parquet"))
+#   if (file.exists(fileparquet)) {
+#     # dt <- as.data.table(as.data.frame(polars::pl$read_parquet(fileparquet)))
+#     if (thisdatasource != "SIDIAP") {
+#       dt <- as.data.table(as.data.frame(polars::pl$read_parquet(file.path(thisdirinput,paste0(conc,"_dataset",".parquet")))))
+#     } else {
+#       dt <- as.data.table(arrow::read_parquet(file.path(thisdirinput,paste0(conc,"_dataset",".parquet"))))
+#     }
+#     dt[, concept_id := conc]
+#     dt <- dt[,.(person_id,date,meaning_renamed,concept_id)]
+#     data <- rbind(data,dt, fill = T)
+#   }
+#   
+# } 
 
-subpop <- "all"
+data <- merge(persons, processing[, .(person_id, date_first)], by = "person_id", all = F)
+data <- data[, .(data_outcome = min(death_date)), by = c("person_id", "date_first")]
+data[, outcome:=ifelse(!is.na(data_outcome), 1, 0)]
 
-for (subpop in thissubpopulations) {
-  suffix <- fifelse(subpop == "all","",paste0("_",subpop))
-  print(suffix)
-  
-  persons <- readRDS(file.path(thisdirinput,paste0("D3_STUDY_POPULATION",suffix,".rds")))
 
-  
-  data <- data.table(
-    person_id = character(),
-    date = as.Date(character()),
-    meaning_renamed = character(),
-    concept_id = character()
-  )
-  for (conc in thisconcept_ids) {
-    fileparquet <- file.path(thisdirinput,paste0(conc,"_dataset",".parquet"))
-    if (file.exists(fileparquet)) {
-      # dt <- as.data.table(as.data.frame(polars::pl$read_parquet(fileparquet)))
-      if (thisdatasource != "SIDIAP") {
-        dt <- as.data.table(as.data.frame(polars::pl$read_parquet(file.path(thisdirinput,paste0(conc,"_dataset",".parquet")))))
-      } else {
-        dt <- as.data.table(arrow::read_parquet(file.path(thisdirinput,paste0(conc,"_dataset",".parquet"))))
-      }
-      dt[, concept_id := conc]
-      dt <- dt[,.(person_id,date,meaning_renamed,concept_id)]
-      data <- rbind(data,dt, fill = T)
-    }
-    
-  } 
+processing <- data
 
-  data <- merge(data, persons[,.(person_id, t0)], by = "person_id", all = F )
-  data <- data[ date > t0 ,]
-  data <- data[, .(outcome_date = min(date)), by = c("person_id", "t0","concept_id", "meaning_renamed") ]
-  setnames(data, c("concept_id", "meaning_renamed"), c("outcome_type", "outcome_prompt"))
-  
- 
-  
-  processing <- data
-  
-  # check meanings
-  check <- processing[, .N, by = c("outcome_type", "outcome_prompt")]
-  setorder(check,outcome_type,outcome_prompt)
+#########################################
+# salvataggio
 
-  check_masked <- check
-  check_masked <-  check_masked[, (names(check_masked)) := lapply(.SD, as.character)]
-  check_masked <-  check_masked[as.numeric(N) > 0 & as.numeric(N) < 5, N := "< 5"]
-  
-  
-    
-   #########################################
-   # cleaning
-   
-   tokeep <-  c("person_id","t0", "outcome_date","outcome_type", "outcome_prompt")
-   setorder(processing, person_id, outcome_date)
-  
-   processing <- processing[,..tokeep]
-   
-   
-   #########################################
-   # save
-   
-   outputfile <- processing
-   
-   nameoutput <- paste0("D3_OUTCOMES")
-   nameoutputext <- paste0(nameoutput,suffix,".rds")
-   assign(nameoutput, outputfile)
-   saveRDS(outputfile, file = file.path(thisdiroutput, nameoutputext))
-   
-   outputfile <- check
-   
-   nameoutput <- paste0("D5_DIAGNOSTIC_MEANING_OUTCOMES")
-   nameoutputext <- paste0(nameoutput,suffix,".rds")
-   assign(nameoutput, outputfile)
-   saveRDS(outputfile, file = file.path(thisdiroutput, nameoutputext))
+outputfile <- processing
 
-   outputfile <- check_masked
-   
-   nameoutput <- paste0("D5_DIAGNOSTIC_MEANING_OUTCOMES_masked")
-   nameoutputext <- paste0(nameoutput,suffix,".csv")
-   assign(nameoutput, outputfile)
-   fwrite(outputfile, file = file.path(thisdirexp, nameoutputext))
-   
-   }
+nameoutput <- "D3_outcome.rds"
+
+assign(nameoutput, outputfile)
+saveRDS(outputfile, file = file.path(thisdiroutput, nameoutput))
+
