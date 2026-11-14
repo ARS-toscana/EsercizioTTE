@@ -43,7 +43,7 @@ processing[, evento:= fifelse(causa_censura==1, 1, 0)]
 processing[, tempo_evento := as.numeric(tempo_censura)]
 
 # merge con coorte in studio con pesi
-analytical_dataset <- merge(processing, D4_esp_comp_pesi_troncati_trimmed[, .(person_id, weight, truncated_weight)], by = "person_id")
+analytical_dataset <- merge(processing[, esposizione:=NULL], D4_esp_comp_pesi_troncati_trimmed[, .(person_id, exposure, weight, truncated_weight)], by = "person_id")
 
 #########################################
 # cleaning
