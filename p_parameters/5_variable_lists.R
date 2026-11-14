@@ -2,14 +2,14 @@
 # DESCRIBE THE VARIABLES
 # ###################################################################
 # 
-# var_selection <- c("sel_data_incomplete", 
-#                    "sel_no_obs_periods", 
-#                    "sel_obs_period_not_overlapped_study_period",
-#                    "sel_never18plus_during_study_period",
-#                    "sel_no_drug",
-#                    "sel_no_drug_during_obs_period_correct_age",
-#                    "sel_no_lookback",
-#                    "is_in_study")
+var_selection <- c("sel_data_incomplete",
+                   "sel_no_obs_periods",
+                   "sel_obs_period_not_overlapped_study_period",
+                   "sel_never18plus_during_study_period",
+                   "sel_no_drug",
+                   "sel_no_drug_during_obs_period_correct_age",
+                   "sel_no_lookback",
+                   "is_in_study")
 # 
 # # names of variables
 # 
