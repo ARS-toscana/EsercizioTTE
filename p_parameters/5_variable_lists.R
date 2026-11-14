@@ -2,14 +2,16 @@
 # DESCRIBE THE VARIABLES
 # ###################################################################
 # 
-var_selection <- c("sel_data_incomplete",
-                   "sel_no_obs_periods",
-                   "sel_obs_period_not_overlapped_study_period",
-                   "sel_never18plus_during_study_period",
-                   "sel_no_drug",
-                   "sel_no_drug_during_obs_period_correct_age",
+var_selection <- c("sel_dati_incompleti",
+                   "sel_no_periodi_osservazione",
+                   "sel_obs_period_non_toccano_periodo_studio",
+                   "sel_no_maschi",
+                   "sel_mai18durante_periodo_studio",
+                   "sel_no_farmaco",
+                   "sel_no_farmaco_durante_periodo_studio_con_eta",
                    "sel_no_lookback",
-                   "is_in_study")
+                   "sel_farmaco_ambiguo",
+                   "in_studio")
 # 
 # # names of variables
 # 
