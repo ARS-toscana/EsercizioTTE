@@ -34,7 +34,9 @@ source(paste0(thisdir,"/p_parameters/6_parameters_study.R"))
 source(paste0(thisdir,"/p_steps/01_T2_10_crea_dataset_matching_liste_codici.R"))
 source(paste0(thisdir,"/p_steps/01_T2_20_crea_D3_individui.R"))
 source(paste0(thisdir,"/p_steps/01_T2_30_crea_D3_periodi_osservazione.R"))
-source(paste0(thisdir,"/p_steps/02_T2_10_create_D3_selezione_esp_comp.R"))
+source(paste0(thisdir,"/p_steps/02_T2_10_crea_D3_selezione_esp_comp.R"))
+source(paste0(thisdir,"/p_steps/02_T2_20_crea_D3_episodi_trattamento.R"))
+
 
 # source(paste0(thisdir,"/p_steps/.R"))
 # 
