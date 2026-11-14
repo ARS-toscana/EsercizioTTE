@@ -13,7 +13,7 @@ if (!require("rstudioapi")) install.packages("rstudioapi")
 thisdir <- setwd(dirname(rstudioapi::getSourceEditorContext()$path))
 thisdir <- setwd(dirname(rstudioapi::getSourceEditorContext()$path))
 
-TEST <- T
+TEST <- F
 
 dirinput <- paste0(thisdir,"/i_input/")
 
@@ -31,10 +31,10 @@ source(paste0(thisdir,"/p_parameters/6_parameters_study.R"))
 
 # ######################################
 # # run scripts
-# source(paste0(thisdir,"/p_steps/01_T2_10_crea_dataset_matching_liste_codici.R"))
-# source(paste0(thisdir,"/p_steps/01_T2_20_crea_D3_individui.R"))
-# source(paste0(thisdir,"/p_steps/01_T2_30_crea_D3_periodi_osservazione.R"))
-
+source(paste0(thisdir,"/p_steps/01_T2_10_crea_dataset_matching_liste_codici.R"))
+source(paste0(thisdir,"/p_steps/01_T2_20_crea_D3_individui.R"))
+source(paste0(thisdir,"/p_steps/01_T2_30_crea_D3_periodi_osservazione.R"))
+source(paste0(thisdir,"/p_steps/02_T2_10_create_D3_selezione_esp_comp.R"))
 
 # source(paste0(thisdir,"/p_steps/.R"))
 # 

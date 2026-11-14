@@ -172,19 +172,19 @@ data[, sesso := 1]
 # datanas
 
 set.seed(5234)
-data[,year_first := year(date_first) ]
+data[,year_first := year(t0) ]
 data[,year_of_birth := year_first - age]
-data[,days_birth := date_first - ymd(paste0(as.character(year_first),"0101"))]
+data[,days_birth := t0 - ymd(paste0(as.character(year_first),"0101"))]
 data[, datanas := ymd(paste0(as.character(year_of_birth),"0101")) + round(days_birth * runif(.N))]
 
 # data_inizioass data_fineass
 
-setnames(data, "op_start", "data_inizioass")
+data[,data_inizioass := pmin(op_start, t0 - 730)]
 setnames(data, "op_end", "data_fineass")
 
 # datadec
 
-data[, datadec := date_first + round(365.25 * tempo_causa_1)]
+data[, datadec := t0 + round(tempo_causa_1)]
 
 # aggiungi qualche periodo di osservazione in più nel passato
 
@@ -208,7 +208,13 @@ maxid <- max(toadd$numid)
 toadd[, random := runif(.N)]
 toadd <- toadd[ random < .5,] 
 set.seed(1234)
-data[, sesso := as.character(sample(1:2, .N, replace = TRUE, prob = c(.5,.5)))]
+toadd[, sesso := as.character(sample(1:2, .N, replace = TRUE, prob = c(.5,.5)))]
+set.seed(56473)
+toadd[, random := runif(.N)]
+toadd[,age := round(random* age)]
+toadd[,year_of_birth := year_first - age]
+toadd[,days_birth := t0 - ymd(paste0(as.character(year_first),"0101"))]
+toadd[, toaddnas := ymd(paste0(as.character(year_of_birth),"0101")) + round(days_birth * runif(.N))]
 set.seed(81323)
 toadd[, random := runif(.N)]
 toadd[ random > .1, datadec := NA_Date_] 
@@ -309,7 +315,7 @@ to_CDM <- rbind(to_CDM, data, fill = T)
 data <- copy(dataset_to_be_regressed)
 data <- data[,.(person_id, t0, tempo_switch, exposure)]
 data <- data[!is.na(tempo_switch),]
-data[, date := t0 + round(365.25 * tempo_switch)]
+data[, date := t0 + ceiling(tempo_switch)]
 data[exposure == 1,concept_id := "B"]
 data[exposure == 0,concept_id := "A"]
 to_CDM <- rbind(to_CDM, data, fill = T)
@@ -321,7 +327,7 @@ data <- copy(dataset_to_be_regressed)
 set.seed(34627)
 data <- data[,.(person_id, t0, tempo_interruzione, exposure)]
 data <- data[!is.na(tempo_interruzione),]
-data[, howmany := floor(365.25 * tempo_interruzione/45) ]
+data[, howmany := floor(tempo_interruzione/45) ]
 data <- data[rep(seq_len(.N), howmany)]
 setorder(data, person_id)
 data[, ord := seq_len(.N), by = person_id]

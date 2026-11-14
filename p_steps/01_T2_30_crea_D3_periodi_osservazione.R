@@ -81,7 +81,7 @@ setorderv(
 
 outputfile <- processing
 
-nameoutput <- "D3_OBSPERIODS"
+nameoutput <- "D3_periodi_osservazione"
 nameoutputext <- paste0(nameoutput,".rds")
 assign(nameoutput, outputfile)
 saveRDS(outputfile, file = file.path(thisdiroutput, nameoutputext))

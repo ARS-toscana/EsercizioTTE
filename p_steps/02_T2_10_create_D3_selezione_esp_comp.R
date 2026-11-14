@@ -168,6 +168,8 @@ thissel <- "sel_farmaco_ambiguo"
 
 temp <- medenriched[DATE == date_first,]
 
+temp <- unique(temp[,.(person_id,drug)])
+
 temp[, N := .N, by = "person_id"]
 
 temp <- temp[N == 1,.(person_id, drug)]

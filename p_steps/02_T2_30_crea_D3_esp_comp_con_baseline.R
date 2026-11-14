@@ -1,22 +1,20 @@
 # author: Rosa Gini
 
-# v 1.0 16 Sep 2026
+# v 1.0 14 Nov 2026
 
 #########################################
 
 if (TEST){
-  testname <- "test_D3_coorte_con_caratterizzazione"
+  testname <- "test_D3_esp_comp_con_baseline"
   thisdirinput <- file.path(dirtest,testname)
   thisdiroutput <- file.path(dirtest,testname,"g_output")
   dir.create(thisdiroutput, showWarnings = F)
-  thisdrug_names <- c("abira")
 }else{
   thisdirinput <- dirtemp
   thisdiroutput <- dirtemp
-  thisdrug_names <- drug_names
 }
 
-parameters_this_step <- as.data.table(unique(readxl::read_excel(file.path(dirarchive,"codebooks",paste0("D3_coorte_con_caratterizzazione.xlsx")),1)))
+parameters_this_step <- as.data.table(unique(readxl::read_excel(file.path(dirarchive,"codebooks",paste0("D3_esp_comp_baseline.xlsx")),1)))
 
 component_variables <- unlist(unique(parameters_this_step[parameter == "component",.(value)]))
 
