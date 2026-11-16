@@ -278,7 +278,7 @@ toadd <- copy(to_CDM)
 toadd[, random := runif(.N)]
 toadd <- toadd[ random < .1,] 
 set.seed(77933)
-to_CDM[, date := date + round(500*rnorm(.N))]
+toadd[, date := date + round(500*rnorm(.N))]
 to_CDM <- rbind(to_CDM, toadd, fill = T)
 
 
