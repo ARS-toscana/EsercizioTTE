@@ -222,7 +222,7 @@ setnames(tab_nice, "cell", paste0("cell_",j))
 row_header_1 <- c(row_header_1, "Cancro metastatico")
 j <- descriptive_N_perc(j, "metastatic_")
 
-add_asd(j - 1, "metastatic")
+add_asd(j, "metastatic")
 
 
 ############################################
@@ -243,7 +243,7 @@ add_asd(j, "iperten")
 row_header_1 <- c(row_header_1, "Cardiopatia ischemica")
 j <- descriptive_N_perc(j, "cardioisc_")
 
-add_asd(j, "iperten")
+add_asd(j, "cardioisc")
 
 ############################################
 # Infarto miocardico
@@ -260,7 +260,7 @@ j <- descriptive_N_perc(j, "arit_")
 add_asd(j, "arit")
 
 ############################################
-# Aritmie
+# Angina
 row_header_1 <- c(row_header_1, "Angina")
 j <- descriptive_N_perc(j, "angi_")
 
