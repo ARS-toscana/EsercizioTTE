@@ -71,46 +71,45 @@ row_header_1 <- c()
 j            <- -1
 
 # row 1
-row_header_1 <- c(row_header_1, "Soggetti con almeno un farmaco nella storia e un periodo di osservazione che tocca il periodo di studio")
+row_header_1 <- c(row_header_1, "Soggetti nell’istanza della sorgente dei dati")
 j <- j + 1
 tab_nice[, cell := as.character(N)]
 setnames(tab_nice, "cell", paste0("cell_", j))
 
 # row 2
-row_header_1 <- c(row_header_1, "Soggetti registrati in anagrafe sanitaria regionale per almeno un giorno tra il 01/01/2016 e il 31/12/2025
-                               con data di nascita e sesso compilati e validi")
+row_header_1 <- c(row_header_1, "AND registrati in anagrafe sanitaria per almeno un giorno con data di nascita e genere compilati e validi nella registrazione più recente")
 j <- descriptive_N_perc(j, "sel_dati_incompleti_")
 
 # row 3
-row_header_1 <- c(row_header_1, "Soggetti con un periodo di osservazione")
+row_header_1 <- c(row_header_1, "AND con almeno un periodo di osservazione valido (inizia prima di finire)")
 j <- descriptive_N_perc(j, "sel_no_periodi_osservazione_")
 
 # row 4
-row_header_1 <- c(row_header_1, "Soggetti con un periodo di osservazione coincidente con il periodo di studio")
+row_header_1 <- c(row_header_1, "AND con un periodo di osservazione che tocca il periodo di studio anche solo per un giorno")
 j <- descriptive_N_perc(j, "sel_obs_period_non_toccano_periodo_studio_")
 
 # row 4
-row_header_1 <- c(row_header_1, "Soggetti di genere femminile")
+row_header_1 <- c(row_header_1, "AND con genere maschile nell’osservazione più recente")
 j <- descriptive_N_perc(j, "sel_no_maschi_")
 
 # row 5
-row_header_1 <- c(row_header_1, "Soggetti di età ≥18 anni alla prima data di dispensazione di uno dei farmaci di interesse durante il periodo di studio (data indice)")
+row_header_1 <- c(row_header_1, "AND di età ≥18 anni per almeno un giorno in un periodo di osservazione che tocca il periodo di studio")
 j <- descriptive_N_perc(j, "sel_mai18durante_periodo_studio_")
 
 # row 6
-row_header_1 <- c(row_header_1, "Soggetti con almeno una dispensazione del farmaco di interesse nell'istanza")
+row_header_1 <- c(row_header_1, "AND con almeno una dispensazione del farmaco di interesse nell'istanza")
 j <- descriptive_N_perc(j, "sel_no_farmaco_")
 
 # row 7
-row_header_1 <- c(row_header_1, "Soggetti con almeno una dispensazione del farmaco di interesse nel periodo di studio")
+row_header_1 <- c(row_header_1, "AND di età ≥18 anni alla prima data di dispensazione di uno dei farmaci di interesse durante il periodo di studio (data indice) e la data indice è nel periodo di studio")
 j <- descriptive_N_perc(j, "sel_no_farmaco_durante_periodo_studio_con_eta_")
 
 # row 8
-row_header_1 <- c(row_header_1, "Soggetti con almeno 24 mesi di osservazione disponibili prima della data indice")
+row_header_1 <- c(row_header_1, "AND con almeno 24 mesi di osservazione disponibili prima della data indice")
 j <- descriptive_N_perc(j, "sel_no_lookback_")
 
 # row 8
-row_header_1 <- c(row_header_1, "Soggetti con un farmaco non ambiguo")
+row_header_1 <- c(row_header_1, "AND con un farmaco non ambiguo")
 j <- descriptive_N_perc(j, "sel_farmaco_ambiguo_")
 
 # row 10
