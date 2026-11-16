@@ -28,6 +28,29 @@ D5_nocov <- data[, .(
               age_q3 = quantile(age, probs = 0.75)),
               drug]
 
+# anno indice
+data[, anno_indice:=year(date_first)]
+
+var <- "anno_indice"                
+livelli <- sort(unique(na.omit(data[[var]])))
+
+res <- data[, .(N = .N), drug]         
+
+for (l in livelli) {
+  
+  tmp <- data[, .(
+    tmp_N = sum(get(var) == l, na.rm = TRUE),
+    tmp_p = round(sum(get(var) == l, na.rm = TRUE) / .N, 3) * 100),
+    drug]
+  
+  setnames(tmp, "tmp_N", paste0(var, "_", l, "_N"))
+  setnames(tmp, "tmp_p", paste0(var, "_", l, "_p"))
+  
+  res <- merge(res, tmp, by = "drug")
+}
+
+D5 <- merge(D5_nocov, res, by = c("N", "drug"), all = F)
+
 # creazione D5 con covariate binarie
 covariates_binary <- c("iperten", "cardioisc", "infart", "arit", "angi",
                        "ictus", "tia", "scompcard", "dislip", "diab",
@@ -59,7 +82,7 @@ for (i in covariates_binary) {
 }
 
 # creazione D5 finale
-D5 <- merge(D5_nocov, D5_cov, by = c("N", "drug"), all = F)
+D5 <- merge(D5, D5_cov, by = c("N", "drug"), all = F)
 
 
 # salvataggio

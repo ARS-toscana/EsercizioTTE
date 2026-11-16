@@ -91,6 +91,17 @@ j <- add_empty_row(j)
 j <- descriptive_median_q1q3(j, "age")
 
 # row 9
+row_header_1 <- c(row_header_1, "Anno indice")
+j <- add_empty_row(j)
+
+for (i in c(2016:2025)) {
+  
+  row_header_1 <- c(row_header_1, i)
+  j <- descriptive_N_perc(j, paste0("anno_indice_", i, "_"))
+  
+}
+
+# row 9
 row_header_1 <- c(row_header_1, "Cancro metastatico")
 j <- descriptive_N_perc(j, "metastatic_")
 
