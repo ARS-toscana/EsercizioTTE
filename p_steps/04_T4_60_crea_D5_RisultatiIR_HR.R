@@ -1,12 +1,12 @@
 ############################################################
 #                                                          #
-#            Create D5_RisultatiIR_HR_v2                   #
+#            Create D5_RisultatiIR_HR                      #
 #                                                          #
 ############################################################
 
 # v1.1: includes changes done my FinReg
 
-# authors: Azzurra Bongianni, Rosa Gini
+# authors: Rosa Gini, Sabrina Giometto, Elena Ferrati
 # corrected version:
 # - robust validation of exposure, follow-up and outcome
 # - always retains exposure strata 0 and 1
@@ -598,10 +598,9 @@ if (
     stop(
       sprintf(
         paste0(
-          "[D5_ResultsIR_HR] subpop='%s': ",
+          "[D5_RisultatiIR_HR]: ",
           "duplicated analysis/exposure key"
-        ),
-        subpop
+        )
       )
     )
   }

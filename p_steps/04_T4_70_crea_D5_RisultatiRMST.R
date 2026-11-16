@@ -3,7 +3,7 @@
 #                 CREATE D5_RisultatiRMST                  #
 #                                                          #
 ############################################################
-# authors: Azzurra Bongianni, Rosa Gini, Olga Paoletti
+# authors: Rosa Gini, Sabrina Giometto, Elena Ferrati
 
 
 # RMST model:
