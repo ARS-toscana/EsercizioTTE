@@ -1,0 +1,35 @@
+
+Call:
+glm(formula = exposure ~ ., family = binomial(link = "logit"), 
+    data = variables_clean)
+
+Coefficients:
+             Estimate Std. Error z value Pr(>|z|)    
+(Intercept) -0.723002   0.264150  -2.737 0.006198 ** 
+age         -0.001293   0.003324  -0.389 0.697396    
+iperten1     0.227013   0.112227   2.023 0.043093 *  
+cardioisc1   0.264474   0.146405   1.806 0.070848 .  
+infart1      0.279350   0.107185   2.606 0.009154 ** 
+arit1        0.179560   0.112284   1.599 0.109785    
+angi1        0.158298   0.184438   0.858 0.390743    
+ictus1       0.306907   0.111453   2.754 0.005893 ** 
+tia1         0.193371   0.113307   1.707 0.087895 .  
+scompcard1   0.381754   0.111875   3.412 0.000644 ***
+dislip1      0.215799   0.111188   1.941 0.052276 .  
+diab1        0.364178   0.110889   3.284 0.001023 ** 
+cortic1      0.156490   0.113975   1.373 0.169747    
+antiang1    -0.180156   0.161385  -1.116 0.264289    
+antitromb1   0.253627   0.111125   2.282 0.022468 *  
+bifosf1      0.313700   0.115478   2.717 0.006597 ** 
+metastatic1  3.099938   0.133177  23.277  < 2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 6924.7  on 4997  degrees of freedom
+Residual deviance: 5772.3  on 4981  degrees of freedom
+AIC: 5806.3
+
+Number of Fisher Scoring iterations: 5
+

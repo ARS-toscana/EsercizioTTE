@@ -1,3 +1,0 @@
-treatment,N pazienti,N eventi,Anni-Persona,Incidence rate (95% CI),Hazard ratio grezzo (95% CI),Hazard ratio aggiustato (95% CI),Restricted mean survival time 1 anno (95% CI)
-B,705,77,632.5,121.74 (96.075–152.154),1,1,346.34 (341.93–350.23)
-A,4293,848,3671.3,230.978 (215.692–247.062),1.91 (1.512–2.411),1.593 (1.234–2.055),330.55 (328.19–332.86)

@@ -74,51 +74,18 @@ totprob = sum(probyear)
 probyear = c(probyear, 1 - totprob)
 data[, birth_year := sample(birth_year_list, Npersons, replace = TRUE, prob = probyear)]
 
-# set.seed(54632)
-# data[, random := round(runif(.N, min = 1, max = t0 - 365 - dmy(paste0("0101",as.character(birth_year)))))]
-# data[, op_start  := as.Date( t0 - random)]
-# data[, t0 := pmax(t0, dmy(paste0("0101",as.character(birth_year))))]
-# set.seed(14632)
-# data[, random := round(rpois(.N, lambda = 900))]
-# data[, op_end := pmin(t0 + random, study_end_date)]
-# data[,random := NULL]
-
-# year_first
-# data[, year_first:=year(t0)]
-
-# exposure
-# set.seed(1252)
-# # data[, exposure := rbinom(.N, size = 1, prob = probexposure)]
-# # data[, exposure:=ifelse(exposure==1, "A", "B")]
-# 
-# alpha0<--0.5
-# alpha1<-1.2
-# p_exposure<-1/ (1+exp(-(alpha0+alpha1*data$metastatic)))
-# data[, exposure := rbinom(.N, size=1, prob=p_exposure)]
-
-
 # età a t0
 data[, age := year(t0) - birth_year]
 data[,birth_year := NULL]
 
-# covariate a t0
+# metastatic
 
-j <- 1
-for (cb in covariates_binary) {
-  seedchange <- 1111 + j
-  set.seed(seedchange)
-  cov <- seq(0,1)
-  probcov = runif(1, min = 0, max = 1)
-  totprob = sum(probcov)
-  probcov = c(probcov, 1 - totprob)
-  data[, cov := sample(cov, Npersons, replace = TRUE, prob = probcov)]
-  seedchange <- 112 + j
-  set.seed(seedchange)
-  data[, random := runif(.N)]
-  # data[exposure == "A" & random > .95, cov := 1]
-  setnames(data,"cov",cb)
-  j <- j + 1
-}
+cb <- "metastatic"
+seedchange <- 11453
+set.seed(seedchange)
+data[, random := runif(.N)]
+data[, cov := fifelse(random > .8, 1,0)]
+setnames(data,"cov",cb)
 data[,random := NULL]
 
 # esposizione dipendente da metastatic (modello logistico)
@@ -127,6 +94,22 @@ alpha0 <- -0.5
 alpha1 <- 3
 p_drug <- 1/ (1+exp(-(alpha0+alpha1*data$metastatic)))
 data[, exposure := rbinom(.N, size=1, prob=p_drug)]
+
+
+# covariate al tempo t0
+
+j <- 1
+for (cb in setdiff(covariates_binary, "metastatic")) {
+  seedchange <- 1111 + j
+  set.seed(seedchange)
+  data[, random := runif(.N)]
+  data[ exposure == 1, cov := fifelse(random > .9 , 1,0)]
+  data[ exposure == 0, cov := fifelse(random > .92 , 1,0)]
+  setnames(data,"cov",cb)
+  j <- j + 1
+}
+data[,random := NULL]
+
 
 # interruzione
 data[, interruzione:= 1]
@@ -395,43 +378,43 @@ data[
 # verifica parametri su ogni variabile
 #tratto il tempo simulato come evento di interesse
 
-# data[, .N, causa_censura]
-# 
-# fit_grezzo <- coxph(Surv(tempo_censura, outcome) ~ exposure, 
-#                     data = data)
-# fit_grezzo
-# 
-# prop.table(table(data$metastatic, data$exposure), margin=2)*100
-# 
-# fit_cox_ipw <- coxph(Surv(tempo_censura, outcome) ~ exposure, 
-#                      data = data[in_overlap_tmp == 1], 
-#                      weights = truncated_weight,
-#                      robust = TRUE)
-# 
-# fit_cox_ipw
-# 
-# hr_grezzo <- exp(coef(fit_grezzo))
-# hr_grezzo
-# 
-# hr_ipw <- exp(coef(fit_cox_ipw))
-# hr_ipw
-# 
-# weighted_table <- data[, .(
-#   pct_metastatic_0 = sum(weight[metastatic == 0]) / sum(weight),
-#   pct_metastatic_1 = sum(weight[metastatic == 1]) / sum(weight)
-# ), by = exposure]
-# 
-# weighted_table
-# 
-# summary(data$weight)
-# 
-# smd <- function(x, g, w = rep(1, length(x))) {
-#   m1 <- weighted.mean(x[g == 1], w[g == 1])
-#   m0 <- weighted.mean(x[g == 0], w[g == 0])
-#   (m1 - m0) / sqrt((m1 * (1 - m1) + m0 * (1 - m0)) / 2)
-# }
-# smd(data$metastatic, data$exposure) # prima
-# smd(data$metastatic, data$exposure, data$weight) #dopo
+data[, .N, causa_censura]
+
+fit_grezzo <- coxph(Surv(tempo_censura, outcome) ~ exposure,
+                    data = data)
+fit_grezzo
+
+prop.table(table(data$metastatic, data$exposure), margin=2)*100
+
+fit_cox_ipw <- coxph(Surv(tempo_censura, outcome) ~ exposure,
+                     data = data[in_overlap_tmp == 1],
+                     weights = truncated_weight,
+                     robust = TRUE)
+
+fit_cox_ipw
+
+hr_grezzo <- exp(coef(fit_grezzo))
+hr_grezzo
+
+hr_ipw <- exp(coef(fit_cox_ipw))
+hr_ipw
+
+weighted_table <- data[, .(
+  pct_metastatic_0 = sum(weight[metastatic == 0]) / sum(weight),
+  pct_metastatic_1 = sum(weight[metastatic == 1]) / sum(weight)
+), by = exposure]
+
+weighted_table
+
+summary(data$weight)
+
+smd <- function(x, g, w = rep(1, length(x))) {
+  m1 <- weighted.mean(x[g == 1], w[g == 1])
+  m0 <- weighted.mean(x[g == 0], w[g == 0])
+  (m1 - m0) / sqrt((m1 * (1 - m1) + m0 * (1 - m0)) / 2)
+}
+smd(data$metastatic, data$exposure) # prima
+smd(data$metastatic, data$exposure, data$weight) #dopo
 
 
 

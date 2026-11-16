@@ -1,13 +1,12 @@
 row_header,7673
-Soggetti con almeno un farmaco nella storia e un periodo di osservazione che tocca il periodo di studio,7673
-"Soggetti registrati in anagrafe sanitaria regionale per almeno un giorno tra il 01/01/2016 e il 31/12/2025
-                               con data di nascita e sesso compilati e validi","7.673 (100,0%)"
-Soggetti con un periodo di osservazione,"7.547 (98,4%)"
-Soggetti con un periodo di osservazione coincidente con il periodo di studio,"7.547 (98,4%)"
-Soggetti di genere femminile,"6.282 (81,9%)"
-Soggetti di età ≥18 anni alla prima data di dispensazione di uno dei farmaci di interesse durante il periodo di studio (data indice),"6.282 (81,9%)"
-Soggetti con almeno una dispensazione del farmaco di interesse nell'istanza,"5.000 (65,2%)"
-Soggetti con almeno una dispensazione del farmaco di interesse nel periodo di studio,"4.998 (65,1%)"
-Soggetti con almeno 24 mesi di osservazione disponibili prima della data indice,"4.998 (65,1%)"
-Soggetti con un farmaco non ambiguo,"4.998 (65,1%)"
+Soggetti nell’istanza della sorgente dei dati,7673
+AND registrati in anagrafe sanitaria per almeno un giorno con data di nascita e genere compilati e validi nella registrazione più recente,"7.673 (100,0%)"
+AND con almeno un periodo di osservazione valido (inizia prima di finire),"7.547 (98,4%)"
+AND con un periodo di osservazione che tocca il periodo di studio anche solo per un giorno,"7.547 (98,4%)"
+AND con genere maschile nell’osservazione più recente,"6.282 (81,9%)"
+AND di età ≥18 anni per almeno un giorno in un periodo di osservazione che tocca il periodo di studio,"6.282 (81,9%)"
+AND con almeno una dispensazione del farmaco di interesse nell'istanza,"5.000 (65,2%)"
+AND di età ≥18 anni alla prima data di dispensazione di uno dei farmaci di interesse durante il periodo di studio (data indice) e la data indice è nel periodo di studio,"4.998 (65,1%)"
+AND con almeno 24 mesi di osservazione disponibili prima della data indice,"4.998 (65,1%)"
+AND con un farmaco non ambiguo,"4.998 (65,1%)"
 Totale soggetti inclusi nello studio,"4.998 (65,1%)"

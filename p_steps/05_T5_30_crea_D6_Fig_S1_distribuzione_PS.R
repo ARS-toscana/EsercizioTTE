@@ -31,22 +31,8 @@ if (TEST){
 
 #########################################
 
-# this header works both locally and on DRE
-# create the list list_ds_analysed of all datasources including their subpopulations (ds_subpop)
-# store all the data in a list of datasets indexed by ds_subpop
-
-# tab_nice_all <- list()
-# list_ds_analysed <- c()
-# name_suffix <- list()
-
-
 input <- readRDS(file = file.path(thisdirinput, "D5_Fig_S1_distribuzione_PS.rds"))
     
-#########################################
-# load input datasets
-
-# input <- tab_nice_all[[suffix]]
-#    fread(file.path(thisdirinput, paste0("D5_Supplementary_Figure_1_masked",suffix,".csv")),colClasses = "character")
 
 #########################################
 # start_processing
@@ -86,9 +72,9 @@ width <- 0.05
 ##Propensity Score Overlap
 
 plot <- ggplot(input, aes(x = bin, y = Frequency, fill = exposure_fac)) +
-  geom_col(position = "identity", width = width) |> blend("multiply") +
+  geom_col(position = "identity", width = width, just = 0) |> blend("multiply") +
   scale_fill_manual(values = c("skyblue", "gold")) +
-  scale_x_continuous(breaks = seq(0, 1, by = 0.2)) +
+  scale_x_continuous(breaks = seq(0, 1, by = 0.05), minor_breaks = NULL) +
   labs(title = "Propensity Score Overlap by Treatment Group",
        x = "Propensity Score",
        y = "Frequency",
@@ -113,12 +99,6 @@ plot <- ggplot(input, aes(x = bin, y = Frequency, fill = exposure_fac)) +
                         values = setNames(percentiles$linetype, percentiles$group))
 
 
-
-#########################################
-# clean
-
-# listvartokeep <- c()
-# processing <- processing[,..listvartokeep]
 
 #########################################
 # save

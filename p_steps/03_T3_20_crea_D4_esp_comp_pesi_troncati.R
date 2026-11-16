@@ -23,12 +23,11 @@ if (TEST) {
   thisdirinput <- file.path(dirtest, testname)
   thisdiroutput <- file.path(thisdirinput, "g_output")
   dir.create(thisdiroutput, showWarnings = FALSE)
-  
+  thisdirarchive <- thisdirinput
 } else {
-  
   thisdirinput <- dirtemp
   thisdiroutput <- dirtemp
-  
+  thisdirarchive <- dirinput_decision
 }
 
 #########################################
@@ -68,7 +67,6 @@ cols_to_keep <- colnames(input)
   # 
   # input_troncatura <- input_troncatura[ds == deap, ]
   
-thisdirarchive <- file.path(thisdir, "p_parameters", "archive_parameters")
 input_troncatura <- fread(file=file.path(thisdirarchive, "input_troncatura.csv"))
 
 #########################################

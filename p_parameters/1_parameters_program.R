@@ -4,6 +4,7 @@ dirtest <- file.path(thisdir,"i_test")
 
 dirmacro <- paste0(thisdir,"/p_macro/")
 dirarchive <- paste0(thisdir,"/p_parameters/archive_parameters/")
+dirinput_decision <- file.path(thisdir, "i_input_decision")
 
 # dircodelist <- file.path(thisdir,"p_parameters","archive_parameters")
 
