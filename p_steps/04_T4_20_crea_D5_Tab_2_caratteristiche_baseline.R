@@ -25,7 +25,8 @@ D5_nocov <- data[, .(
               N          = .N,
               age_median = median(age),
               age_q1 = quantile(age, probs = 0.25),
-              age_q3 = quantile(age, probs = 0.75))]
+              age_q3 = quantile(age, probs = 0.75)),
+              drug]
 
 # creazione D5 con covariate binarie
 covariates_binary <- c("iperten", "cardioisc", "infart", "arit", "angi",
@@ -40,7 +41,8 @@ for (i in covariates_binary) {
   tmp <- data[, .(
               N = .N,
               tmp_N = sum(get(i)==1),
-              tmp_p = round(sum(get(i)==1)/.N,3)*100)]
+              tmp_p = round(sum(get(i)==1)/.N,3)*100),
+              drug]
 
   setnames(tmp,"tmp_N",paste0(i, "_N"))
   setnames(tmp,"tmp_p",paste0(i, "_p"))
@@ -51,13 +53,13 @@ for (i in covariates_binary) {
 
   } else {
 
-    D5_cov <- merge(D5_cov, tmp, by = "N")
+    D5_cov <- merge(D5_cov, tmp, by = c("N", "drug"))
   }
 
 }
 
 # creazione D5 finale
-D5 <- merge(D5_nocov, D5_cov, by = "N", all = F)
+D5 <- merge(D5_nocov, D5_cov, by = c("N", "drug"), all = F)
 
 
 # salvataggio

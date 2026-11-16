@@ -80,9 +80,9 @@ row_header_1 <- c()
 j            <- -1
 
 # row 4
-row_header_1 <- c(row_header_1, "Totale nuovi utilizzatori")
+row_header_1 <- c(row_header_1, "Farmaco indice")
 j <- j + 1
-tab_nice[, cell := as.character(N)]
+tab_nice[, cell := drug]
 setnames(tab_nice, "cell", paste0("cell_", j))
 
 # row 5-6
@@ -162,7 +162,7 @@ j <- descriptive_N_perc(j, "bifosf_")
 # filtro celle
 
 cell_cols <- grep("^cell_", names(tab_nice), value = TRUE)
-tokeep <- c(cell_cols)
+tokeep <- c("drug", cell_cols)
 tab_nice <- tab_nice[, ..tokeep]
 
 
@@ -173,6 +173,7 @@ tab_nice <- tab_nice[, ..tokeep]
 
 tab_nice <- melt(
   tab_nice,
+  id.vars = c("drug"),
   measure.vars = patterns(
     cell = "^cell_[0-9]+$"
   ),
@@ -183,6 +184,19 @@ tab_nice[, rownum := as.integer(rownum)]
 
 
 # ordinamento
+setorder(tab_nice, rownum, drug)
+
+
+# then reshape from long to wide keeping rownum as the UoO
+
+tab_nice <- dcast(
+  tab_nice,
+  rownum ~ drug,
+  value.var = "value"
+)
+
+
+# Order rows correctly
 setorder(tab_nice, rownum)
 
 
@@ -195,7 +209,7 @@ tab_nice[, rownum := NULL]
 #########################################
 # ordine colonne
 
-setcolorder(tab_nice, c("row_header", "value"))
+setcolorder(tab_nice, c("row_header", "A", "B"))
 
 
 #########################################
