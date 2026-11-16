@@ -4,8 +4,7 @@
 #                                                          #
 ############################################################
 
-# v1.1: includes changes done my FinReg
-
+# v1.0 
 # authors: Rosa Gini, Sabrina Giometto, Elena Ferrati
 # corrected version:
 # - robust validation of exposure, follow-up and outcome

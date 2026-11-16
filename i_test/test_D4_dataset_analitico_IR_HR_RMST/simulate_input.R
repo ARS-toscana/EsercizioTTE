@@ -33,10 +33,10 @@ library(survival)
 Npersons <- 5000
 
 # input metadata
-thisdirarchive <- file.path(thisdir, "..", "..", "p_parameters", "archive_parameters")
+thisdirarchive <- thisdir
 
 # list covariates
-parameters_this_step <- as.data.table(unique(readxl::read_excel(file.path(thisdirarchive,"codebooks",paste0("D4_esp_comp_baseline_pesi.xlsx")),1)))
+parameters_this_step <- as.data.table(unique(readxl::read_excel(file.path(dirarchive,"codebooks",paste0("D4_esp_comp_baseline_pesi.xlsx")),1)))
 
 thiscovariates_bin <- unlist(parameters_this_step[parameter == "covar_bin",.(value)])
 
