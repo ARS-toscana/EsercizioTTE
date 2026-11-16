@@ -97,209 +97,237 @@ percentile_ci <- function(x) {
 ############################################################
 # 9. STABLE WEIBULL AFT RMST FUNCTION
 ############################################################
+# estimate_rmst_fast <- function(
+#     dt,
+#     tau,
+#     weight_col = NULL
+# ) {
+#   dt <- as.data.table(dt)
+#   if (is.null(weight_col)) {
+#     fit <- survival::survreg(
+#         survival::Surv(tempo_evento, evento) ~ exposure,
+#         data = dt,
+#         dist = "weibull")
+#   } else {
+#     w  <- dt[[weight_col]]
+#     dt <- dt[!is.na(w) & is.finite(w) & w > 0]
+#         fit <- survival::survreg(
+#           survival::Surv(tempo_evento, evento) ~ exposure,
+#           data = dt,
+#           dist = "weibull",
+#           weights = dt[[weight_col]]
+#         )
+#   }
+#   
+#   sigma <- as.numeric(fit$scale)
+#   weibull_shape <- 1 / sigma
+#   
+#   predict_one_rmst <- function(exposure_value) {
+#     linear_predictor <- as.numeric(
+#       stats::predict(
+#           fit,
+#           newdata = data.frame(
+#             exposure = exposure_value),
+#           type = "lp"
+#           )
+#       )[1L]
+#     weibull_scale <- exp(linear_predictor)
+#     as.numeric(
+#       stats::integrate(
+#         f = function(time) {
+#           exp(-(time / weibull_scale) ^ weibull_shape)
+#           },
+#           lower = 0,
+#           upper = tau,
+#           subdivisions = 100L,
+#           rel.tol = 1e-7
+#         )$value
+#     )
+#   }
+#   rmst_0 <- predict_one_rmst(0L)
+#   rmst_1 <- predict_one_rmst(1L)
+#   c(
+#     rmst_0 = rmst_0,
+#     rmst_1 = rmst_1,
+#     difference = rmst_1 - rmst_0
+#   )
+# }
+# 
+
+
+############################################################
+# 9. KAPLAN-MEIER RMST FUNCTION 
+############################################################
+
 estimate_rmst_fast <- function(
     dt,
     tau,
-    weight_col = NULL
-) {
+    weight_col = NULL) 
+  {
   dt <- as.data.table(dt)
-  if (is.null(weight_col)) {
-    fit <- survival::survreg(
+  if (!is.null(weight_col)) {
+    dt <- dt[is.finite(get(weight_col)) & get(weight_col) > 0]
+    w <- dt[[weight_col]]
+    } else {
+      w <- NULL
+      }
+  
+  fit <- survival::survfit(
         survival::Surv(tempo_evento, evento) ~ exposure,
         data = dt,
-        dist = "weibull")
-  } else {
-    w  <- dt[[weight_col]]
-    dt <- dt[!is.na(w) & is.finite(w) & w > 0]
-        fit <- survival::survreg(
-          survival::Surv(tempo_evento, evento) ~ exposure,
-          data = dt,
-          dist = "weibull",
-          weights = dt[[weight_col]]
-        )
-  }
+        weights = w
+      )
   
-  sigma <- as.numeric(fit$scale)
-  weibull_shape <- 1 / sigma
-  
-  predict_one_rmst <- function(exposure_value) {
-    linear_predictor <- as.numeric(
-      stats::predict(
-          fit,
-          newdata = data.frame(
-            exposure = exposure_value),
-          type = "lp"
-          )
-      )[1L]
-    weibull_scale <- exp(linear_predictor)
-    as.numeric(
-      stats::integrate(
-        f = function(time) {
-          exp(-(time / weibull_scale) ^ weibull_shape)
-          },
-          lower = 0,
-          upper = tau,
-          subdivisions = 100L,
-          rel.tol = 1e-7
-        )$value
-    )
-  }
-  rmst_0 <- predict_one_rmst(0L)
-  rmst_1 <- predict_one_rmst(1L)
-  c(
-    rmst_0 = rmst_0,
-    rmst_1 = rmst_1,
-    difference = rmst_1 - rmst_0
-  )
+  rm <- summary(fit, rmean = tau)$table[, "rmean"]
+  c(rmst_0 = unname(rm[1]), rmst_1 = unname(rm[2]),
+  difference = unname(rm[2] - rm[1]))
 }
-
-
 ############################################################
-# 9B. DIAGNOSTIC WEIBULL MODEL
-############################################################
-diagnose_survreg <- function(
-  dt,
-  tau,
-  analysis_label,
-  model_label,
-  weight_col = NULL
-) {
-  diagnostic_data <- as.data.table(copy(dt))
-  # diagnostic_data <- diagnostic_data[
-  #   is.finite(FUP_years) &
-  #     FUP_years > 0 &
-  #     outcome %in% c(0L, 1L) &
-  #     exposure %in% c(0L, 1L)
-  # ]
-  # if (!is.null(weight_col)) {
-  #   diagnostic_data <- diagnostic_data[
-  #     is.finite(get(weight_col)) & get(weight_col) > 0
-  #   ]
-  # }
-  cat(
-    "\n--- DIAGNOSTIC MODEL ", model_label,
-    ": ", analysis_label, " ---\n",
-    sep = ""
-  )
-  model_data_summary <- diagnostic_data[
-    ,
-    .(
-      rows = .N,
-      patients = uniqueN(person_id),
-      events = sum(evento == 1L),
-      events_before_tau = sum(evento == 1L & tempo_evento <= tau),
-      min_fup = min(tempo_evento),
-      median_fup = median(tempo_evento),
-      max_fup = max(tempo_evento),
-      min_weight = if (!is.null(weight_col)) min(get(weight_col)) else NA_real_,
-      max_weight = if (!is.null(weight_col)) max(get(weight_col)) else NA_real_
-    ),
-    by = exposure
-  ]
-  cat("Model", model_label," \n")
-  print(model_data_summary)
-  captured_warnings <- character()
-  fit <- #tryCatch(
-    withCallingHandlers(
-      {
-        if (is.null(weight_col)) {
-          survival::survreg(
-            survival::Surv(tempo_evento, evento) ~ exposure,
-            data = diagnostic_data,
-            dist = "weibull",
-            x = TRUE,
-            y = TRUE,
-            model = TRUE
-          )
-        } else {
-          survival::survreg(
-            survival::Surv(tempo_evento, evento) ~ exposure,
-            data = diagnostic_data,
-            dist = "weibull",
-            weights = diagnostic_data[[weight_col]],
-            x = TRUE,
-            y = TRUE,
-            model = TRUE
-          )
-        }
-      },
-      warning = function(w) {
-        captured_warnings <<- c(captured_warnings, conditionMessage(w))
-        invokeRestart("muffleWarning")
-      }
-    )
-  #   error = function(e) {
-  #     message("DIAGNOSTIC survreg error [", model_label, "]: ", conditionMessage(e))
-  #     NULL
-  #   }
-  # )
-  if (length(captured_warnings) > 0L) {
-    message(
-      "DIAGNOSTIC survreg warnings [", model_label, "]: ",
-      paste(unique(captured_warnings), collapse = " | ")
-    )
-  }
-  # if (is.null(fit)) {
-  #   return(list(fit = NULL, summary = model_data_summary))
-  # }
-  cat("Coefficients:\n")
-  print(stats::coef(fit), digits = 12)
-  cat("survreg scale:", fit$scale, "\n")
-  predictions <- #tryCatch(
-    stats::predict(
-      fit,
-      newdata = data.frame(exposure = c(0L, 1L)),
-      type = "lp"
-    )
-  #   error = function(e) {
-  #     message("DIAGNOSTIC predict error [", model_label, "]: ", conditionMessage(e))
-  #     c(NA_real_, NA_real_)
-  #   }
-  # )
-  cat("Linear predictions for exposure 0 and 1:\n")
-  print(predictions, digits = 12)
-  # diagnostic_rmst <- c(rmst_0 = NA_real_, rmst_1 = NA_real_, difference = NA_real_)
-  # if (
-  #   length(predictions) == 2L &&
-  #   all(is.finite(predictions)) &&
-  #   is.finite(fit$scale) &&
-  #   fit$scale > 0
-  # ) {
-    shape <- 1 / fit$scale
-    scales <- exp(predictions)
-    rmst_values <- vapply(
-      scales,
-      FUN.VALUE = numeric(1L),
-      FUN = function(scale_value) {
-        #tryCatch(
-        stats::integrate(
-          function(time) exp(-(time / scale_value)^shape),
-          lower = 0,
-          upper = tau
-          )$value
-          # error = function(e) {
-          #   message("DIAGNOSTIC integrate error [", model_label, "]: ", conditionMessage(e))
-          #   NA_real_
-          # }
-        #)
-      }
-    )
-    diagnostic_rmst <- c(
-      rmst_0 = rmst_values[1L],
-      rmst_1 = rmst_values[2L],
-      difference = rmst_values[2L] - rmst_values[1L]
-    )
-  
-  cat("Diagnostic RMST (not rounded):\n")
-  print(diagnostic_rmst, digits = 12)
-  list(
-    fit = fit,
-    summary = model_data_summary,
-    predictions = predictions,
-    rmst = diagnostic_rmst,
-    warnings = captured_warnings
-  )
-}
+# # 9B. DIAGNOSTIC WEIBULL MODEL
+# ############################################################
+# diagnose_survreg <- function(
+#   dt,
+#   tau,
+#   analysis_label,
+#   model_label,
+#   weight_col = NULL
+# ) {
+#   diagnostic_data <- as.data.table(copy(dt))
+#   # diagnostic_data <- diagnostic_data[
+#   #   is.finite(FUP_years) &
+#   #     FUP_years > 0 &
+#   #     outcome %in% c(0L, 1L) &
+#   #     exposure %in% c(0L, 1L)
+#   # ]
+#   # if (!is.null(weight_col)) {
+#   #   diagnostic_data <- diagnostic_data[
+#   #     is.finite(get(weight_col)) & get(weight_col) > 0
+#   #   ]
+#   # }
+#   cat(
+#     "\n--- DIAGNOSTIC MODEL ", model_label,
+#     ": ", analysis_label, " ---\n",
+#     sep = ""
+#   )
+#   model_data_summary <- diagnostic_data[
+#     ,
+#     .(
+#       rows = .N,
+#       patients = uniqueN(person_id),
+#       events = sum(evento == 1L),
+#       events_before_tau = sum(evento == 1L & tempo_evento <= tau),
+#       min_fup = min(tempo_evento),
+#       median_fup = median(tempo_evento),
+#       max_fup = max(tempo_evento),
+#       min_weight = if (!is.null(weight_col)) min(get(weight_col)) else NA_real_,
+#       max_weight = if (!is.null(weight_col)) max(get(weight_col)) else NA_real_
+#     ),
+#     by = exposure
+#   ]
+#   cat("Model", model_label," \n")
+#   print(model_data_summary)
+#   captured_warnings <- character()
+#   fit <- #tryCatch(
+#     withCallingHandlers(
+#       {
+#         if (is.null(weight_col)) {
+#           survival::survreg(
+#             survival::Surv(tempo_evento, evento) ~ exposure,
+#             data = diagnostic_data,
+#             dist = "weibull",
+#             x = TRUE,
+#             y = TRUE,
+#             model = TRUE
+#           )
+#         } else {
+#           survival::survreg(
+#             survival::Surv(tempo_evento, evento) ~ exposure,
+#             data = diagnostic_data,
+#             dist = "weibull",
+#             weights = diagnostic_data[[weight_col]],
+#             x = TRUE,
+#             y = TRUE,
+#             model = TRUE
+#           )
+#         }
+#       },
+#       warning = function(w) {
+#         captured_warnings <<- c(captured_warnings, conditionMessage(w))
+#         invokeRestart("muffleWarning")
+#       }
+#     )
+#   #   error = function(e) {
+#   #     message("DIAGNOSTIC survreg error [", model_label, "]: ", conditionMessage(e))
+#   #     NULL
+#   #   }
+#   # )
+#   if (length(captured_warnings) > 0L) {
+#     message(
+#       "DIAGNOSTIC survreg warnings [", model_label, "]: ",
+#       paste(unique(captured_warnings), collapse = " | ")
+#     )
+#   }
+#   # if (is.null(fit)) {
+#   #   return(list(fit = NULL, summary = model_data_summary))
+#   # }
+#   cat("Coefficients:\n")
+#   print(stats::coef(fit), digits = 12)
+#   cat("survreg scale:", fit$scale, "\n")
+#   predictions <- #tryCatch(
+#     stats::predict(
+#       fit,
+#       newdata = data.frame(exposure = c(0L, 1L)),
+#       type = "lp"
+#     )
+#   #   error = function(e) {
+#   #     message("DIAGNOSTIC predict error [", model_label, "]: ", conditionMessage(e))
+#   #     c(NA_real_, NA_real_)
+#   #   }
+#   # )
+#   cat("Linear predictions for exposure 0 and 1:\n")
+#   print(predictions, digits = 12)
+#   # diagnostic_rmst <- c(rmst_0 = NA_real_, rmst_1 = NA_real_, difference = NA_real_)
+#   # if (
+#   #   length(predictions) == 2L &&
+#   #   all(is.finite(predictions)) &&
+#   #   is.finite(fit$scale) &&
+#   #   fit$scale > 0
+#   # ) {
+#     shape <- 1 / fit$scale
+#     scales <- exp(predictions)
+#     rmst_values <- vapply(
+#       scales,
+#       FUN.VALUE = numeric(1L),
+#       FUN = function(scale_value) {
+#         #tryCatch(
+#         stats::integrate(
+#           function(time) exp(-(time / scale_value)^shape),
+#           lower = 0,
+#           upper = tau
+#           )$value
+#           # error = function(e) {
+#           #   message("DIAGNOSTIC integrate error [", model_label, "]: ", conditionMessage(e))
+#           #   NA_real_
+#           # }
+#         #)
+#       }
+#     )
+#     diagnostic_rmst <- c(
+#       rmst_0 = rmst_values[1L],
+#       rmst_1 = rmst_values[2L],
+#       difference = rmst_values[2L] - rmst_values[1L]
+#     )
+#   
+#   cat("Diagnostic RMST (not rounded):\n")
+#   print(diagnostic_rmst, digits = 12)
+#   list(
+#     fit = fit,
+#     summary = model_data_summary,
+#     predictions = predictions,
+#     rmst = diagnostic_rmst,
+#     warnings = captured_warnings
+#   )
+# }
 
 ############################################################
 # 10. SEQUENTIAL BOOTSTRAP FUNCTION
@@ -605,7 +633,7 @@ tau <- 365
 cat(
   "Calculating RMST at",
   tau,
-  "year(s)\n"
+  "days(s)\n"
   )
   
   ######################################################
@@ -820,7 +848,7 @@ processing[
       "evento",
     followup_variable =
       "tempo_evento",
-    RMST_year =
+    RMST_days =
       tau)]
   
   
