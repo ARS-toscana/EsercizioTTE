@@ -44,15 +44,15 @@ thiscovariates_bin <- unlist(parameters_this_step[parameter == "covar_bin",.(val
 covariates_binary <- thiscovariates_bin
 
 
-# set probability of exposure
-# probexposure = 0.55
+# set probability of esposizione
+# probesposizione = 0.55
 
 
 #######################################
 # DATA GENERATION
 
 # all variables
-list_variables <- c("person_id", "t0", "age", "exposure", covariates_binary,
+list_variables <- c("person_id", "t0", "age", "esposizione", covariates_binary,
                     "interruzione", "switch", "morte")
 
 # create base 
@@ -93,7 +93,7 @@ set.seed(1252)
 alpha0 <- -0.5
 alpha1 <- 3
 p_drug <- 1/ (1+exp(-(alpha0+alpha1*data$metastatic)))
-data[, exposure := rbinom(.N, size=1, prob=p_drug)]
+data[, esposizione := rbinom(.N, size=1, prob=p_drug)]
 
 
 # covariate al tempo t0
@@ -103,8 +103,8 @@ for (cb in setdiff(covariates_binary, "metastatic")) {
   seedchange <- 1111 + j
   set.seed(seedchange)
   data[, random := runif(.N)]
-  data[ exposure == 1, cov := fifelse(random > .9 , 1,0)]
-  data[ exposure == 0, cov := fifelse(random > .92 , 1,0)]
+  data[ esposizione == 1, cov := fifelse(random > .9 , 1,0)]
+  data[ esposizione == 0, cov := fifelse(random > .92 , 1,0)]
   setnames(data,"cov",cb)
   j <- j + 1
 }
@@ -118,7 +118,7 @@ data[, interruzione:= 1]
 set.seed(148)
 alpha0 <- -0.5
 alpha1 <- -1.4
-p_switch <- 1/ (1+exp(-(alpha0+alpha1*data$exposure)))
+p_switch <- 1/ (1+exp(-(alpha0+alpha1*data$esposizione)))
 data[, switch := rbinom(.N, size=1, prob=p_switch)]
 
 # morte
@@ -130,7 +130,7 @@ data[, switch := rbinom(.N, size=1, prob=p_switch)]
 
 
 # filtro
-to_keep <- c("exposure", "age", covariates_binary, "interruzione", "switch")
+to_keep <- c("esposizione", "age", covariates_binary, "interruzione", "switch")
 variables <- data[,..to_keep]
 
 # rimozione variabili costanti
@@ -149,9 +149,9 @@ variables_clean <- variables[, !const_cols, with = FALSE]
 # simulazione tempi
 
 # controllo distribuzione
-data[, .N, .(metastatic, exposure)]
+data[, .N, .(metastatic, esposizione)]
 # data[, .N, .(metastatic, morte)]
-data[, .N, .(switch, exposure)]
+data[, .N, .(switch, esposizione)]
 
 
 #############################################
@@ -168,20 +168,20 @@ b_scompcard <- -0.45
 b_infart <- -0.35
 b_ictus <- -0.40
 
-# parametri per tempo_causa_2 (fine_osservazione_persona)
-b0_c2 <- 7
+# parametri per tempo_causa_2 (fine_studio)
+b0_c2 <- 7.2
 b1_c2 <- 0
-sig_c2 <- 0.4
+sig_c2 <- 0.45
 
 # parametri per tempo_causa_3 (fine_finestra_studio)
 # b0_c3 <- 7.1
 # b1_c3 <- 0
 # sig_c3 <- 0.3
 
-# parametri per tempo_causa_4 (fine_studio)
-b0_c4 <- 7.2
+# parametri per tempo_causa_4 (fine_osservazione_persona)
+b0_c4 <- 7
 b1_c4 <- 0
-sig_c4 <- 0.45
+sig_c4 <- 0.4
 
 # parametri per tempo_interruzione
 b0_int <- 6.5
@@ -202,25 +202,25 @@ simulazione <- function(b0, b1, trt, b2, meta, b3, age, sigma) {
 }
 
 # tempi causa_censura_j
-# data[, tempo_causa_1 := simulazione(b0_out, b1_out, exposure, 1, (b2_out * metastatic) + 
+# data[, tempo_causa_1 := simulazione(b0_out, b1_out, esposizione, 1, (b2_out * metastatic) + 
 #                                       (b3_age * (age - mean(age, na.rm = TRUE))) + 
 #                                       (b_scompcard * scompcard) + 
 #                                       (b_infart * infart) + 
 #                                       (b_ictus * ictus),0, 0, sig_out)]
-data[, lp_out := b0_out + b1_out * exposure + b2_out * metastatic +
+data[, lp_out := b0_out + b1_out * esposizione + b2_out * metastatic +
        b3_age * (age - mean(age)) +
        b_scompcard * scompcard + b_infart * infart + b_ictus * ictus]
 set.seed(898)
 data[, tempo_causa_1 := exp(lp_out) * (-log(runif(.N)))^sig_out]
 
 data[, morte := as.integer(tempo_causa_1 <= H)]
-data[, tempo_causa_2 := simulazione(b0_c2, b1_c2, exposure, 0, 0, 0, 0, sig_c2)]
+data[, tempo_causa_2 := simulazione(b0_c2, b1_c2, esposizione, 0, 0, 0, 0, sig_c2)]
 data[, tempo_causa_3 := 365]
-data[, tempo_causa_4 := simulazione(b0_c4, b1_c4, exposure, 0, 0, 0, 0, sig_c4)]
+data[, tempo_causa_4 := simulazione(b0_c4, b1_c4, esposizione, 0, 0, 0, 0, sig_c4)]
 
 # tempi interruzione e switch
-data[, tempo_interruzione := simulazione(b0_int, b1_int, exposure, 0, 0, 0, 0, sig_int)]
-data[, tempo_switch := simulazione(b0_sw, b1_sw, exposure, b2_sw, 0, 0, 0, sig_sw)]
+data[, tempo_interruzione := simulazione(b0_int, b1_int, esposizione, 0, 0, 0, 0, sig_int)]
+data[, tempo_switch := simulazione(b0_sw, b1_sw, esposizione, b2_sw, 0, 0, 0, sig_sw)]
 
 # data[, tempo_causa_1:= ifelse(morte ==1, tempo_causa_1, NA)]
 
@@ -251,22 +251,22 @@ data[, switch_pre_censura := ifelse(switch == 1 & !is.na(tempo_switch) & tempo_s
 data[, tempo_switch := ifelse(switch_pre_censura==1, tempo_switch, NA)]
 
 # stima PS
-ps_model <- glm(exposure ~ ., 
+ps_model <- glm(esposizione ~ ., 
                 data = variables_clean, 
                 family = binomial(link = "logit"))
 
 data[, ps := ps_model$fitted.values]
 
-p_treated <- mean(data$exposure == 1, na.rm = TRUE)
+p_treated <- mean(data$esposizione == 1, na.rm = TRUE)
 
 # calcolo pesi
-data[, weight := ifelse(exposure == 1,
+data[, weight := ifelse(esposizione == 1,
                         p_treated / ps,
                         (1 - p_treated) / (1 - ps))]
 
 # trimming
 cols_to_keep <- colnames(data)
-required_cols <- c("person_id", "t0", "exposure", "ps")
+required_cols <- c("person_id", "t0", "esposizione", "ps")
 
 missing_cols <- setdiff(required_cols, names(data))
 
@@ -295,7 +295,7 @@ ps_lower_exposed <- NA_real_
 if (!is.na(trunc_par_exposed$lower_limit)) {
   
   ps_lower_exposed <- quantile(
-    data[exposure == 1, ps],
+    data[esposizione == 1, ps],
     probs = trunc_par_exposed$lower_limit / 100,
     na.rm = TRUE
   )
@@ -306,7 +306,7 @@ ps_upper_exposed <- NA_real_
 if (!is.na(trunc_par_exposed$upper_limit)) {
   
   ps_upper_exposed <- quantile(
-    data[exposure == 1, ps],
+    data[esposizione == 1, ps],
     probs = trunc_par_exposed$upper_limit / 100,
     na.rm = TRUE
   )
@@ -342,14 +342,14 @@ data[, truncated_ps := fifelse(
 data[, weight := 0]
 
 p_treated_trimmed <- mean(
-  data[in_overlap_tmp == 1L, exposure == 1],
+  data[in_overlap_tmp == 1L, esposizione == 1],
   na.rm = TRUE
 )
 
 data[
   in_overlap_tmp == 1L,
   weight := fifelse(
-    exposure == 1,
+    esposizione == 1,
     p_treated_trimmed / ps,
     (1 - p_treated_trimmed) / (1 - ps)
   )
@@ -380,13 +380,13 @@ data[
 
 data[, .N, causa_censura]
 
-fit_grezzo <- coxph(Surv(tempo_censura, outcome) ~ exposure,
+fit_grezzo <- coxph(Surv(tempo_censura, outcome) ~ esposizione,
                     data = data)
 fit_grezzo
 
-prop.table(table(data$metastatic, data$exposure), margin=2)*100
+prop.table(table(data$metastatic, data$esposizione), margin=2)*100
 
-fit_cox_ipw <- coxph(Surv(tempo_censura, outcome) ~ exposure,
+fit_cox_ipw <- coxph(Surv(tempo_censura, outcome) ~ esposizione,
                      data = data[in_overlap_tmp == 1],
                      weights = truncated_weight,
                      robust = TRUE)
@@ -402,7 +402,7 @@ hr_ipw
 weighted_table <- data[, .(
   pct_metastatic_0 = sum(weight[metastatic == 0]) / sum(weight),
   pct_metastatic_1 = sum(weight[metastatic == 1]) / sum(weight)
-), by = exposure]
+), by = esposizione]
 
 weighted_table
 
@@ -413,8 +413,8 @@ smd <- function(x, g, w = rep(1, length(x))) {
   m0 <- weighted.mean(x[g == 0], w[g == 0])
   (m1 - m0) / sqrt((m1 * (1 - m1) + m0 * (1 - m0)) / 2)
 }
-smd(data$metastatic, data$exposure) # prima
-smd(data$metastatic, data$exposure, data$weight) #dopo
+smd(data$metastatic, data$esposizione) # prima
+smd(data$metastatic, data$esposizione, data$weight) #dopo
 
 
 
@@ -438,7 +438,7 @@ input <- data[, ..keep_cols]
 
 
 ## salvo D4_follow_up
-listvar <- c("person_id", "t0", "exposure", "interruzione",
+listvar <- c("person_id", "t0", "esposizione", "interruzione",
              "switch", "morte", "causa_censura", "outcome", "tempo_censura", 
              "tempo_causa_1", "tempo_causa_2", "tempo_causa_3", "tempo_causa_4",
              "interruzione_pre_censura", "switch_pre_censura",
@@ -452,7 +452,7 @@ namedataset <- "D4_follow_up"
 saveRDS(data, file = paste0(thisdir, "/", namedataset,".rds"))
 
 ## salvo D4_esp_comp_pesi_troncati_trimmed
-cols_to_keep <- c("person_id", "t0", "exposure", "age", covariates_binary, 
+cols_to_keep <- c("person_id", "t0", "esposizione", "age", covariates_binary, 
                   "ps", "weight", "truncated_ps", "truncated_weight")
 
 input <- input[,..cols_to_keep]

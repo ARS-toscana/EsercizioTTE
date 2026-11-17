@@ -1,19 +1,19 @@
 row_header,Totale,A,B
-N,9,5,4
+N,5000,2430,2570
 Giorni-persona di follow-up,"","",""
-Mediana (Q1 - Q3),365 (333-365),361 (333-365),365 (311.5-365)
-Min - Max,151-365,154-365,151-365
+Mediana (Q1 - Q3),365 (365-365),365 (365-365),365 (365-365)
+Min - Max,6.4-365,22-365,6.4-365
 Cause di fine folluw-up,"","",""
-Morte: N (%),2 (22.2%),2 (40%),0 (0%)
-"          Tempo all'evento, Mediana (Q1 - Q3)",347 (340-354),347 (340-354),NA (NA-NA)
-Fine studio: N (%),1 (11.1%),1 (20%),0 (0%)
-"          Tempo all'evento, Mediana (Q1 - Q3)",154 (154-154),154 (154-154),NA (NA-NA)
-Fine finestra studio: N (%),5 (55.6%),2 (40%),3 (75%)
+Morte: N (%),135 (2.7%),110 (4.5%),25 (1%)
+"          Tempo all'evento, Mediana (Q1 - Q3)",203.6 (131.7-289.7),201.5 (128.4-270.8),252.6 (157.9-310.5)
+Fine studio: N (%),277 (5.5%),138 (5.7%),139 (5.4%)
+"          Tempo all'evento, Mediana (Q1 - Q3)",263.7 (195.2-321.6),262 (189.6-317.2),263.7 (199.6-322.8)
+Fine finestra studio: N (%),4284 (85.7%),2041 (84%),2243 (87.3%)
 "          Tempo all'evento, Mediana (Q1 - Q3)",365 (365-365),365 (365-365),365 (365-365)
-Fine osservazione persona: N (%),1 (11.1%),0 (0%),1 (25%)
-"          Tempo all'evento, Mediana (Q1 - Q3)",151 (151-151),NA (NA-NA),151 (151-151)
+Fine osservazione persona: N (%),304 (6.1%),141 (5.8%),163 (6.3%)
+"          Tempo all'evento, Mediana (Q1 - Q3)",277.5 (207.2-325.5),277.2 (215-323.5),277.7 (204.4-326.1)
 Eventi intercorrenti che non causano fine del follow-up,"","",""
-Interruzione: N (%),5 (55.6%),3 (60%),2 (50%)
-"Tempo all'evento, Mediana (Q1 - Q3)",64 (63-152),64 (48-124),107.5 (85.2-129.8)
-Switch: N (%),1 (11.1%),0 (0%),1 (25%)
-"Tempo all'evento, Mediana (Q1 - Q3)",152 (152-152),NA (NA-NA),152 (152-152)
+Interruzione: N (%),1520 (30.4%),751 (30.9%),769 (29.9%)
+"Tempo all'evento, Mediana (Q1 - Q3)",213.4 (129.8-290.7),209.3 (129.3-289.6),218.3 (132.9-291.6)
+Switch: N (%),929 (18.6%),310 (12.8%),619 (24.1%)
+"Tempo all'evento, Mediana (Q1 - Q3)",162.4 (84.8-233.5),110.8 (64.7-179.9),188.1 (104.9-265.6)
