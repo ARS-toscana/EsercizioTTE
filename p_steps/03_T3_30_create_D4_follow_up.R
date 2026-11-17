@@ -27,10 +27,10 @@ print('CREATE D4_follow_up')
 
 
 date_censura_l <- c("data_morte",                      # 1 = morte
-                    "data_fine_osservazione_persona",  # 2 = fine osservazione persona
-                    "data_fine_finestra_studio",
-                    "data_fine_studio")                # 3 = fine finestra studio
-                                                       # 4 = fine studio
+                    "data_fine_studio",                # 2 = fine studio
+                    "data_fine_finestra_studio",       # 3 = fine finestra studio
+                    "data_fine_osservazione_persona")  # 4 = fine osservazione persona
+                                                       
 
 # POPOLAZIONE
 

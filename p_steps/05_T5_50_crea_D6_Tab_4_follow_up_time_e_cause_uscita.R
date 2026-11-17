@@ -82,9 +82,9 @@ add_empty_row <- function(j){
 causelab <- list()
 
 causelab[["1"]] <- "Morte"
-causelab[["2"]]  <- "Fine osservazione persona"
+causelab[["2"]]  <- "Fine studio"
 causelab[["3"]]  <- "Fine finestra studio"
-causelab[["4"]]  <- "Fine studio"
+causelab[["4"]]  <- "Fine osservazione persona"
 
 causes_of_end_fup <- c(1:4)
 
