@@ -342,6 +342,10 @@ to_CDM <- rbind(to_CDM, data, fill = T)
 #########################################
 # converti to_CDM in tabelle di CDM
 
+set.seed(546282)
+to_CDM[, random := runif(.N)]
+setorder(to_CDM, random)
+
 tab <- "sdo"
 
 data <- copy(to_CDM)[concept_id %in% concept_sets_of_our_study_diagnosis,]
