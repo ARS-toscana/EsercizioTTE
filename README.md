@@ -4,9 +4,11 @@ Questo repository contiene un esempio di script per la conduzione di una Target 
 
 Lo script implementa lo studio simulato il cui protocollo si trova a [questo link](https://docs.google.com/document/d/1I-wd7GWlaKxPp6ZlQHGuis6ksHDSb8MfDjzSG0-qWzU/edit?tab=t.0)
 
+Il codice è ispirato massicciamente dal codice dei Case Studies 3, 4 e 5 del progetto europeo [TARGET-EU](https://github.com/target-roc19), finanziato dalla European Medicines Agency, condotto dal network [EU-PE&PV](https://www.uu.nl/en/research/eu-pepv-research-network) e programmato da istituzioni dell'associazione europea [VAC4EU](https://vac4eu.org/) . La struttura del codice specifica di questo studio è illustrata da questo grafico. Il formato del grafico è stato introdotto da VAC4EU e utilizzato in diversi progetti condotti per la European Medicines Agency, per esempio il [CS3 di TARGET-EU](https://target-roc19.github.io/case-study-03-dapagliflozin-public/diagram.html).
+
 ## Struttura concettuale del codice
 
-Il codice è ispirato massicciamente dal codice dei Case Studies 3, 4 e 5 del progetto europeo [TARGET-EU](https://github.com/target-roc19), finanziato dalla European Medicines Agency e condotto dal network [EU-PE&PV](https://www.uu.nl/en/research/eu-pepv-research-network). La struttura del programma segue un flusso introdotto nel 2016 da [Gini e colleghi](https://pubmed.ncbi.nlm.nih.gov/27014709/), sviluppato nel progetto europeo [IMI-ConcePTION](https://github.com/IMI-ConcePTION/ConceptionTools/wiki) e attualmente mantenuto dall'associazione europea [VAC4EU](https://vac4eu.org/) 
+La struttura del programma segue un flusso introdotto nel 2016 da [Gini e colleghi](https://pubmed.ncbi.nlm.nih.gov/27014709/), sviluppato nel progetto europeo [IMI-ConcePTION](https://github.com/IMI-ConcePTION/ConceptionTools/wiki) e attualmente mantenuto dall'associazione europea [VAC4EU](https://vac4eu.org/) 
 
 La pipeline concettuale prevede 6 tipi di dataset (D1, ..., D6) e 5 tipi di trasformazioni intermedie tra loro (T1, ..., T5). Questa è la rappresentazione grafica della pipeline
 
@@ -63,14 +65,14 @@ Una persona può avere più di un record in `ANAGRAFE_ASSISTITI`, uno per ciascu
 | `datadec` | data | `AAAAMMGG`, vuota se in vita | Data di decesso |
 | `datanas` | data | `AAAAMMGG` | Data di nascita |
 
-### SDO – Schede di Dimissione Ospedaliera
+<b>SDO – Schede di Dimissione Ospedaliera</b>
 
 | Variabile | Tipo | Valori | Descrizione |
 |---|---|---|---|
 | `id` | carattere | | Identificativo della persona, collegato a `ANAGRAFE_ASSISTITI` |
 | `data_a` | data | `AAAAMMGG` | Data di ricovero |
 | `data_d` | data | `AAAAMMGG` | Data di dimissione |
-| `dia` | carattere | codice ICD-9-CM senza punto, es. `410`, `2720` (= 272.0) | Diagnosi |
+| `dia` | carattere | codice ICD-9-CM con o senza punto, es. `410`, `2720`, `272.0` | Diagnosi |
 | `dia_col` | intero | `1` = diagnosi principale, `2`, `3`, … = diagnosi secondarie | Posizione della diagnosi nella scheda di dimissione |
 <!-- TODO: confermare la codifica di dia_col (nei dati sintetici vale sempre 1) -->
 
@@ -89,13 +91,12 @@ Una persona può avere più di un record in `ANAGRAFE_ASSISTITI`, uno per ciascu
 | `id` | carattere | | Identificativo della persona, collegato a `ANAGRAFE_ASSISTITI` |
 | `datai` | data | `AAAAMMGG` | Data di inizio dell'esenzione |
 | `dataf` | data | `AAAAMMGG`, vuota se ancora valida | Data di fine dell'esenzione |
-| `dia` | carattere | codice ICD-9-CM senza punto | Diagnosi che dà diritto all'esenzione |
-<!-- TODO: confermare se dia contiene il codice ICD-9-CM o il codice di esenzione -->
+| `dia` | carattere | codice ICD-9-CM con o senza punto | Diagnosi che dà diritto all'esenzione |
 
 <b>SPF e FED – Farmaci erogati</b>
 
 Le due tabelle hanno la stessa struttura: `SPF` contiene i farmaci erogati dalle farmacie territoriali, `FED` i farmaci erogati direttamente dal servizio sanitario (farmacie ospedaliere e distribuzione per conto).
-<!-- TODO: confermare la definizione di SPF e FED -->
+
 
 | Variabile | Tipo | Valori | Descrizione |
 |---|---|---|---|
@@ -108,6 +109,8 @@ Le due tabelle hanno la stessa struttura: `SPF` contiene i farmaci erogati dalle
 
 ### Struttura del codice di questo specifico studio
 
-La struttura del codice 
+La struttura del codice specifica di questo studio è illustrata da questo grafico. Il formato del grafico è stato introdotto da VAC4EU e utilizzato in diversi progetti condotti per la European Medicines Agency.
+
+Nel grafico ogni 
 
 ## Come usare questo repository
