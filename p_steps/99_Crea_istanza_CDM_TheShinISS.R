@@ -131,7 +131,7 @@ clean_and_save <- function(
 testfolder <- "test_D4_dataset_analitico_IR_HR_RMST"
 dataset_to_be_regressed <- readRDS(file.path(dirtest,testfolder,"D4_esp_comp_pesi_troncati_trimmed.rds"))
 data_fup <- readRDS(file.path(dirtest,testfolder,"D4_follow_up.rds"))
-dataset_to_be_regressed <- merge(dataset_to_be_regressed, data_fup[,.(person_id, tempo_causa_1, tempo_interruzione, tempo_switch)], by = "person_id")
+dataset_to_be_regressed <- merge(dataset_to_be_regressed, data_fup[,.(person_id, tempo_causa_1, tempo_causa_4, tempo_interruzione, tempo_switch)], by = "person_id")
 
 testfolder <- "test_D4_esp_comp_pesi"
 dataset_op <- readRDS(file.path(dirtest,testfolder,"D3_esp_comp_con_baseline.rds"))
@@ -147,9 +147,9 @@ if (!("metastatic" %in% names(dataset_to_be_regressed))) {
 if (!("t0" %in% names(dataset_to_be_regressed))) {
   dataset_to_be_regressed[, t0 := date_first]
 }
-if (!("exposure" %in% names(dataset_to_be_regressed))) {
-  dataset_to_be_regressed[, exposure := fifelse(drug == "A", 1, 0)]
-}
+# if (!("exposure" %in% names(dataset_to_be_regressed))) {
+#   dataset_to_be_regressed[, exposure := fifelse(drug == "A", 1, 0)]
+# }
 
 ########################### fine da rimuovere
 
@@ -181,6 +181,9 @@ data[, datanas := ymd(paste0(as.character(year_of_birth),"0101")) + round(days_b
 
 data[,data_inizioass := pmin(op_start, t0 - 730)]
 setnames(data, "op_end", "data_fineass")
+
+data[, data_fineass := as.IDate(data_fineass)]
+data[!is.na(tempo_causa_4), data_fineass := as.IDate(t0 + round(tempo_causa_4))]
 
 # datadec
 
@@ -302,9 +305,9 @@ to_CDM <- to_CDM[(random > .05) , ]
 # aggiungi l'esposizione
 
 data <- copy(dataset_to_be_regressed)
-data <- unique(data[, .(person_id, t0, exposure)])
-data[exposure == 1,concept_id := "A"]
-data[exposure == 0,concept_id := "B"]
+data <- unique(data[, .(person_id, t0, esposizione)])
+data[esposizione == 1,concept_id := "A"]
+data[esposizione == 0,concept_id := "B"]
 set.seed(452783)
 data[, random := runif(.N)]
 data[, date := as.Date(t0)]
@@ -313,11 +316,11 @@ to_CDM <- rbind(to_CDM, data, fill = T)
 # record di switch
 
 data <- copy(dataset_to_be_regressed)
-data <- data[,.(person_id, t0, tempo_switch, exposure)]
+data <- data[,.(person_id, t0, tempo_switch, esposizione)]
 data <- data[!is.na(tempo_switch),]
 data[, date := t0 + ceiling(tempo_switch)]
-data[exposure == 1,concept_id := "B"]
-data[exposure == 0,concept_id := "A"]
+data[esposizione == 1,concept_id := "B"]
+data[esposizione == 0,concept_id := "A"]
 to_CDM <- rbind(to_CDM, data, fill = T)
 
 
@@ -325,7 +328,7 @@ to_CDM <- rbind(to_CDM, data, fill = T)
 
 data <- copy(dataset_to_be_regressed)
 set.seed(34627)
-data <- data[,.(person_id, t0, tempo_interruzione, exposure)]
+data <- data[,.(person_id, t0, tempo_interruzione, esposizione)]
 data <- data[!is.na(tempo_interruzione),]
 data[, howmany := floor(tempo_interruzione/45) ]
 data <- data[rep(seq_len(.N), howmany)]
@@ -334,8 +337,8 @@ data[, ord := seq_len(.N), by = person_id]
 data[, incr := fifelse(ord == 1, 0, 25 + round(15 * runif(.N)))]
 data[, date := t0[1] + cumsum(incr), by = person_id]
 data[, incr := NULL]
-data[exposure == 1,concept_id := "A"]
-data[exposure == 0,concept_id := "B"]
+data[esposizione == 1,concept_id := "A"]
+data[esposizione == 0,concept_id := "B"]
 to_CDM <- rbind(to_CDM, data, fill = T)
 
 
