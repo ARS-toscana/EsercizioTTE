@@ -120,8 +120,36 @@ Nel grafico
 
 ## Come usare questo repository
 
-## Clonare il repository localmente
+### Scaricare il codice
 
-## Usare il codice per generare risultati (modalità TEST == F)
+Per usare il repository, bisogna bisogna installare RStudio, scaricare il codice da [Code > Download ZIP](https://github.com/ARS-toscana/EsercizioTTE/archive/refs/heads/main.zip), scompattare la cartella e aprire il file .Rproj in RStudio.
 
-## Usare il codice per testare il processo di un singolo step (modalità TEST == T)
+Si può anche clonare il repository sul proprio computer. Le istruzioni per fare questo sono disponibili [qui](https://docs.posit.co/ide/user/ide/guide/tools/version-control.html).
+
+### Usare il codice per generare risultati (modalità TEST <- F)
+
+- Aprire il file to.run.R
+- Lanciarlo. Si può lanciare tutto insieme o un passo alla volta
+- Nella directory si troveranno
+   - un folder g_intermediate, che contiene i dataset D3 e D4, e
+   - un folder g_export, che contiene i D5 e i D6
+
+### Usare il codice per testare il processo di un singolo step (modalità TEST <- T)
+
+Molti step hanno una modlaità di test. Se dal to_run si pone la variabile TEST  <- T e si lancia il preambolo, si può poi aprire lo step di interesse. Se nello step c'è un preambolo di questo tipo
+
+```
+
+if (TEST){ 
+  testname <- "test_XXXX"
+  thisdirinput <- ...
+  thisdiroutput <- ...
+  dir.create(thisdiroutput, showWarnings = F)
+}else{
+  thisdirinput <- direxp
+  thisdiroutput <- direxp
+}
+
+```
+
+significa che nel folder thisdirinput sono contenuti dataset simulati specifici che consentono di testare il singolo step. Si può isppezionare i dati di input, eventualemnte modificarli, lanciare lo step e visionare l'output.
