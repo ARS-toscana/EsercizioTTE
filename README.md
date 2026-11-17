@@ -61,7 +61,7 @@ Tutte le tabelle sono collegate dall'identificativo pseudonimizzato della person
 | Tabella | Contenuto | Un record è | Chiave |
 |---|---|---|---|
 | `ANAGRAFE_ASSISTITI` | Anagrafe regionale degli assistiti dal servizio sanitario regionale | un periodo di assistenza di una persona | `id`, `data_inizioass` |
-| `SDO` | Schede di Dimissione Ospedaliera | una diagnosi registrata in un ricovero | nessuna: `id`, `data_a`, `dia`, `dia_col` possono ripetersi |
+| `SDO` | Schede di Dimissione Ospedaliera | una diagnosi registrata in un ricovero | `id`, `data_a`, `dia_col` |
 | `PS` | Accessi al Pronto Soccorso | una diagnosi registrata in un accesso al pronto soccorso | nessuna |
 | `EXE` | Esenzioni dalla partecipazione alla spesa per patologia | un'esenzione di una persona | nessuna |
 | `SPF` | Farmaci erogati dalle farmacie territoriali | un'erogazione | nessuna: sono possibili record identici |
