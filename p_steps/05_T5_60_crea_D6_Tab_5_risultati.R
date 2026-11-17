@@ -124,40 +124,99 @@ general_info <- DT[, .(treatment,
                         upper = IRul_))]
 
 # HR
-hr <- DT[,.(treatment,
-            `Hazard ratio grezzo (95% CI)` =
-             format_ci(
-             est   = HR_,
-             lower = HRll_,
-             upper = HRul_),
-            `Hazard ratio aggiustato (95% CI)` =
-             format_ci(
-             est   = HR_adj_,
-             lower = HR_adj_ll_,
-             upper = HR_adj_ul_)
-    )]
+# hr <- DT[,.(treatment,
+#             `Hazard ratio grezzo (95% CI)` =
+#              format_ci(
+#              est   = HR_,
+#              lower = HRll_,
+#              upper = HRul_),
+#             `Hazard ratio aggiustato (95% CI)` =
+#              format_ci(
+#              est   = HR_adj_,
+#              lower = HR_adj_ll_,
+#              upper = HR_adj_ul_)
+#     )]
+hr_long <- rbind(DT[,.(treatment, 
+                       Analisi = "Grezzo",
+                       `Hazard ratio (95% CI)` =
+                         format_ci(
+                           est   = HR_,
+                           lower = HRll_,
+                           upper = HRul_))],
+                 DT[,.(treatment,
+                       Analisi = "Aggiustato (IPTW)",
+                       `Hazard ratio (95% CI)` =
+                         format_ci(
+                           est   = HR_adj_,
+                           lower = HR_adj_ll_,
+                           upper = HR_adj_ul_))]
+)
+                       
 
 # RMST
 rmst[, treatment:=ifelse(exposure_stratum==1, "A", "B")]
 
-rmst[, analysisRMST:=NULL]
-rmst[, exposure_stratum:=NULL]
+# rmst[, analysisRMST:=NULL]
+# rmst[, exposure_stratum:=NULL]
+# 
+# rmst_year1 <- rmst[,.(treatment,
+#                     `Restricted mean survival time 1 anno (95% CI)` =
+#                      format_ci(
+#                      est   = RMST_,
+#                      lower = RMST_lb_,
+#                      upper = RMST_ub_) ) ]
 
-rmst_year1 <- rmst[,.(treatment,
-                    `Restricted mean survival time 1 anno (95% CI)` =
-                     format_ci(
-                     est   = RMST_,
-                     lower = RMST_lb_,
-                     upper = RMST_ub_) ) ]
+rmst_long <- rbind(
+  rmst[, .(
+    treatment,
+    Analisi = "Grezzo",
+    `Restricted Mean Survival Time 1 anno (95% CI)`            = format_ci(est = RMST_, lower = RMST_lb_, upper = RMST_ub_),
+    `Differenza Restricted Mean Survival Time 1 anno (95% CI)` = format_ci(est = RMSTdiff_, lower = RMSTdiffll_, upper = RMSTdifful_)
+  )],
+  rmst[, .(
+    treatment,
+    Analisi = "Aggiustato (IPTW)",
+    `Restricted Mean Survival Time 1 anno (95% CI)`            = format_ci(est = RMST_adj_, lower = RMST_adj_lb_, upper = RMST_adj_ub_),
+    `Differenza Restricted Mean Survival Time 1 anno (95% CI)` = format_ci(est = RMSTdiff_adj_, lower = RMSTdiff_adj_ll_, upper = RMSTdiff_adj_ul_)
+  )]
+)
 
 #all together
-table1_long <- merge(general_info, hr,
+table1_long <- merge(hr_long, rmst_long, 
+                     by = c("treatment", "Analisi"),
+                     all.x = TRUE, sort = FALSE)
+table1_long <- merge(general_info, table1_long,
                       by = "treatment",
                       all.x = TRUE, sort = FALSE)
+cols_to_clean <- c("Hazard ratio (95% CI)", 
+                   "Differenza Restricted Mean Survival Time 1 anno (95% CI)"
+)
+table1_long[, (cols_to_clean) := lapply(.SD, function(x) fifelse(is.na(x), "-", x)),
+            .SDcols = cols_to_clean]
 
-table1_long <- merge(table1_long, rmst_year1,
-                     by = "treatment",
-                     all.x = TRUE, sort = FALSE)
+table1_long[, Analisi := factor(Analisi, levels = c("Grezzo", "Aggiustato (IPTW)"))]
+table1_long[, treatment := factor(treatment, levels = c("B", "A"))]
+setorder(table1_long, Analisi, treatment)
+
+setcolorder(table1_long, c(
+  "Analisi",
+  "treatment",
+  "N pazienti",
+  "N eventi",
+  "Anni-Persona",
+  "Incidence rate (95% CI)",
+  "Hazard ratio (95% CI)",
+  "Restricted Mean Survival Time 1 anno (95% CI)",
+  "Differenza Restricted Mean Survival Time 1 anno (95% CI)"
+))
+
+# table1_long <- merge(general_info, hr
+#                       by = "treatment",
+#                       all.x = TRUE, sort = FALSE)
+# 
+# table1_long <- merge(table1_long, rmst_year1,
+#                      by = "treatment",
+#                      all.x = TRUE, sort = FALSE)
 
 # table1_long <- merge(table1_long,rmst_year5,
 #                      by = c("estimand", "treatment"),
