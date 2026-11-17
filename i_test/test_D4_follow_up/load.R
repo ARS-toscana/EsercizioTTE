@@ -16,7 +16,7 @@ if (!require("lubridate")) install.packages("lubridate")
 library(lubridate)
 
 # list of datasets
-listdatasets <- c("D3_outcome", "D3_esp_comp", "D3_episodi_trattamento")
+listdatasets <- c("D3_outcome", "D3_esp_comp", "D3_episodi_trattamento", "D3_periodi_osservazione")
 
 # dates variables 
 listdates <- list()
@@ -24,10 +24,11 @@ listdates <- list()
 
 listdates[["D3_outcome"]] <- c("date_first", "data_outcome")
 
-listdates[["D3_esp_comp"]] <- c("date_first", "op_start", "op_end")
+listdates[["D3_esp_comp"]] <- c("date_first")
 
 listdates[["D3_episodi_trattamento"]] <- c("date_first", "episode_start", "episode_end")
 
+listdates[["D3_periodi_osservazione"]] <- c("start_op", "end_op")
 
 # date baseline
 
