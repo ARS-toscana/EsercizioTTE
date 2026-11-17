@@ -26,9 +26,6 @@ source(paste0(thisdir,"/p_parameters/5_variable_lists.R"))
 source(paste0(thisdir,"/p_parameters/6_parameters_study.R"))
 # source(paste0(thisdir,"/p_parameters/7_parameters_postprocessing.R"))
 
-
-#
-
 # ######################################
 # # run scripts
 source(paste0(thisdir,"/p_steps/01_T2_10_crea_dataset_matching_liste_codici.R"))
@@ -49,18 +46,13 @@ source(paste0(thisdir,"/p_steps/05_T5_20_crea_D6_Tab_2_caratteristiche_baseline.
 source(paste0(thisdir,"/p_steps/04_T4_30_crea_D5_Fig_S1_distribuzione_PS.R"))
 source(paste0(thisdir,"/p_steps/05_T5_30_crea_D6_Fig_S1_distribuzione_PS.R"))
 
-################### FERMARSI QUI
-################### COMPILARE IL FILE i_input_decision/input_troncatura.csv E POI PROSEGUIRE
-
 source(paste0(thisdir,"/p_steps/03_T3_20_crea_D4_esp_comp_pesi_troncati.R"))
 source(paste0(thisdir,"/p_steps/04_T4_40_crea_D5_Tab_3_asd_prima_dopo_pesi.R"))
 source(paste0(thisdir,"/p_steps/05_T5_40_crea_D6_Tab_3_asd_prima_dopo_pesi.R"))
 
-
 source(paste0(thisdir,"/p_steps/03_T3_30_create_D4_follow_up.R"))
 source(paste0(thisdir,"/p_steps/04_T4_50_crea_D5_Tab_4_follow_up_time_e_cause_uscita.R"))
 source(paste0(thisdir,"/p_steps/05_T5_50_crea_D6_Tab_4_follow_up_time_e_cause_uscita.R"))
-
 
 source(paste0(thisdir,"/p_steps/03_T3_40_crea_D4_dataset_analitico_IT_HR_RMST.R"))
 source(paste0(thisdir,"/p_steps/04_T4_60_crea_D5_RisultatiIR_HR.R"))
