@@ -122,7 +122,7 @@ Nel grafico
 
 ### Scaricare il codice
 
-Per usare il repository, bisogna bisogna installare RStudio, scaricare il codice da Code > Download ZIP, scompattare la cartella e aprire il file .Rproj in RStudio.
+Per usare il repository, bisogna bisogna installare RStudio, scaricare il codice da [Code > Download ZIP](https://github.com/ARS-toscana/EsercizioTTE/archive/refs/heads/main.zip), scompattare la cartella e aprire il file .Rproj in RStudio.
 
 Si può anche clonare il repository sul proprio computer. Le istruzioni per fare questo sono disponibili [qui](https://docs.posit.co/ide/user/ide/guide/tools/version-control.html).
 
