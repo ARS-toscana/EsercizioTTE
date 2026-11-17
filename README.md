@@ -4,7 +4,9 @@ Questo repository contiene un esempio di script per la conduzione di una Target 
 
 Lo script implementa lo studio simulato il cui protocollo si trova a [questo link](https://docs.google.com/document/d/1I-wd7GWlaKxPp6ZlQHGuis6ksHDSb8MfDjzSG0-qWzU/edit?tab=t.0)
 
-Il codice è ispirato massicciamente dal codice dei Case Studies 3, 4 e 5 del progetto europeo [TARGET-EU](https://github.com/target-roc19), finanziato dalla European Medicines Agency, condotto dal network [EU-PE&PV](https://www.uu.nl/en/research/eu-pepv-research-network) e programmato da istituzioni dell'associazione europea [VAC4EU](https://vac4eu.org/) . La struttura del codice specifica di questo studio è illustrata da questo grafico. Il formato del grafico è stato introdotto da VAC4EU e utilizzato in diversi progetti condotti per la European Medicines Agency, per esempio il [CS3 di TARGET-EU](https://target-roc19.github.io/case-study-03-dapagliflozin-public/diagram.html). Questo formato è descritto qui sotto.
+Il codice è ispirato massicciamente dal codice dei Case Studies 3, 4 e 5 del progetto europeo [TARGET-EU](https://github.com/target-roc19), finanziato dalla European Medicines Agency, condotto dal network [EU-PE&PV](https://www.uu.nl/en/research/eu-pepv-research-network) e programmato da istituzioni dell'associazione europea [VAC4EU](https://vac4eu.org/) . 
+
+La struttura del codice specifica di questo studio è illustrata da [questo grafico](https://comfy-sherbet-4e44c6.netlify.app/). Il formato del grafico è stato introdotto da VAC4EU e utilizzato in diversi progetti condotti per la European Medicines Agency, per esempio il [CS3 di TARGET-EU](https://target-roc19.github.io/case-study-03-dapagliflozin-public/diagram.html). Questo formato è descritto qui sotto.
 
 ## Struttura concettuale del codice
 
@@ -109,7 +111,7 @@ Le due tabelle hanno la stessa struttura: `SPF` contiene i farmaci erogati dalle
 
 ### Formatod el grafico e struttura del codice di questo specifico studio
 
-La struttura del codice specifica di questo studio è illustrata da questo grafico. Il formato del grafico è stato introdotto da VAC4EU e utilizzato in diversi progetti condotti per la European Medicines Agency.
+La struttura del codice specifica di questo studio è illustrata da [questo grafico](https://comfy-sherbet-4e44c6.netlify.app/). Il formato del grafico è stato introdotto da VAC4EU e utilizzato in diversi progetti condotti per la European Medicines Agency.
 
 Nel grafico 
 
