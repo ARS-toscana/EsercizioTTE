@@ -38,57 +38,8 @@ I dati simulati D2 utilizzati in questo repository seguono una espansione del CD
 
 Tutte le tabelle sono collegate dall'identificativo pseudonimizzato della persona, `id`. Le date sono registrate come testo nel formato `AAAAMMGG` (ad esempio `20190318`); un valore vuoto indica che la data manca o non è applicabile.
 
-```mermaid
-erDiagram
-    ANAGRAFE_ASSISTITI ||--o{ SDO : "id"
-    ANAGRAFE_ASSISTITI ||--o{ PS : "id"
-    ANAGRAFE_ASSISTITI ||--o{ EXE : "id"
-    ANAGRAFE_ASSISTITI ||--o{ SPF : "id"
-    ANAGRAFE_ASSISTITI ||--o{ FED : "id"
+<img width="1584" height="492" alt="er_it" src="https://github.com/user-attachments/assets/97560586-c3e4-4ccd-bf87-a3c2181f3f5d" />
 
-    ANAGRAFE_ASSISTITI {
-        string id PK "identificativo della persona"
-        int sesso "1 maschio, 2 femmina"
-        date data_inizioass PK "inizio assistenza"
-        date data_fineass "fine assistenza"
-        date datadec "data di decesso"
-        date datanas "data di nascita"
-    }
-    SDO {
-        string id FK
-        date data_a "data di ricovero"
-        date data_d "data di dimissione"
-        string dia "diagnosi, ICD-9-CM"
-        int dia_col "posizione della diagnosi"
-    }
-    PS {
-        string id FK
-        date data_a "data di accesso"
-        string dia "diagnosi, ICD-9-CM"
-    }
-    EXE {
-        string id FK
-        date datai "inizio esenzione"
-        date dataf "fine esenzione"
-        string dia "diagnosi, ICD-9-CM"
-    }
-    SPF {
-        string id FK
-        date datasped "data di erogazione"
-        int pezzi "numero di confezioni"
-        string aic "codice prodotto (AIC)"
-        string atc "codice ATC"
-    }
-    FED {
-        string id FK
-        date datasped "data di erogazione"
-        int pezzi "numero di confezioni"
-        string aic "codice prodotto (AIC)"
-        string atc "codice ATC"
-    }
-```
-
-### Panoramica
 
 | Tabella | Contenuto | Un record è | Chiave |
 |---|---|---|---|
@@ -101,7 +52,7 @@ erDiagram
 
 Una persona può avere più di un record in `ANAGRAFE_ASSISTITI`, uno per ciascun periodo di assistenza. Tutte le altre tabelle hanno zero, uno o più record per persona.
 
-### ANAGRAFE_ASSISTITI
+<b>ANAGRAFE_ASSISTITI</b>
 
 | Variabile | Tipo | Valori | Descrizione |
 |---|---|---|---|
@@ -123,7 +74,7 @@ Una persona può avere più di un record in `ANAGRAFE_ASSISTITI`, uno per ciascu
 | `dia_col` | intero | `1` = diagnosi principale, `2`, `3`, … = diagnosi secondarie | Posizione della diagnosi nella scheda di dimissione |
 <!-- TODO: confermare la codifica di dia_col (nei dati sintetici vale sempre 1) -->
 
-### PS – Accessi al Pronto Soccorso
+<b>PS – Accessi al Pronto Soccorso</b>
 
 | Variabile | Tipo | Valori | Descrizione |
 |---|---|---|---|
@@ -131,7 +82,7 @@ Una persona può avere più di un record in `ANAGRAFE_ASSISTITI`, uno per ciascu
 | `data_a` | data | `AAAAMMGG` | Data di accesso al pronto soccorso |
 | `dia` | carattere | codice ICD-9-CM senza punto | Diagnosi |
 
-### EXE – Esenzioni per patologia
+<b>EXE – Esenzioni per patologia</b>
 
 | Variabile | Tipo | Valori | Descrizione |
 |---|---|---|---|
@@ -141,7 +92,7 @@ Una persona può avere più di un record in `ANAGRAFE_ASSISTITI`, uno per ciascu
 | `dia` | carattere | codice ICD-9-CM senza punto | Diagnosi che dà diritto all'esenzione |
 <!-- TODO: confermare se dia contiene il codice ICD-9-CM o il codice di esenzione -->
 
-### SPF e FED – Farmaci erogati
+<b>SPF e FED – Farmaci erogati</b>
 
 Le due tabelle hanno la stessa struttura: `SPF` contiene i farmaci erogati dalle farmacie territoriali, `FED` i farmaci erogati direttamente dal servizio sanitario (farmacie ospedaliere e distribuzione per conto).
 <!-- TODO: confermare la definizione di SPF e FED -->
