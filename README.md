@@ -119,3 +119,9 @@ Nel grafico
 - ogni rettangolo rappresenta un dataset D* e premendolo si viene trasportati al codebook di tale dataset
 
 ## Come usare questo repository
+
+## Clonare il repository localmente
+
+## Usare il codice per generare risultati (modalità TEST == F)
+
+## Usare il codice per testare il processo di un singolo step (modalità TEST == T)
