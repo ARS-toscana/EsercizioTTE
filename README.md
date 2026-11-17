@@ -4,7 +4,9 @@ Questo repository contiene un esempio di script per la conduzione di una Target 
 
 Lo script implementa lo studio simulato il cui protocollo si trova a [questo link](https://docs.google.com/document/d/1I-wd7GWlaKxPp6ZlQHGuis6ksHDSb8MfDjzSG0-qWzU/edit?tab=t.0)
 
-Il codice è ispirato massicciamente dal codice dei Case Studies 3, 4 e 5 del progetto europeo [TARGET-EU](https://github.com/target-roc19), finanziato dalla European Medicines Agency, condotto dal network [EU-PE&PV](https://www.uu.nl/en/research/eu-pepv-research-network) e programmato da istituzioni dell'associazione europea [VAC4EU](https://vac4eu.org/) . La struttura del codice specifica di questo studio è illustrata da questo grafico. Il formato del grafico è stato introdotto da VAC4EU e utilizzato in diversi progetti condotti per la European Medicines Agency, per esempio il [CS3 di TARGET-EU](https://target-roc19.github.io/case-study-03-dapagliflozin-public/diagram.html). Questo formato è descritto qui sotto.
+Il codice è ispirato massicciamente dal codice dei Case Studies 3, 4 e 5 del progetto europeo [TARGET-EU](https://github.com/target-roc19), finanziato dalla European Medicines Agency, condotto dal network [EU-PE&PV](https://www.uu.nl/en/research/eu-pepv-research-network) e programmato da istituzioni dell'associazione europea [VAC4EU](https://vac4eu.org/) . 
+
+La struttura del codice specifica di questo studio è illustrata da [questo grafico](https://comfy-sherbet-4e44c6.netlify.app/). Il formato del grafico è stato introdotto da VAC4EU e utilizzato in diversi progetti condotti per la European Medicines Agency, per esempio il [CS3 di TARGET-EU](https://target-roc19.github.io/case-study-03-dapagliflozin-public/diagram.html). Questo formato è descritto qui sotto.
 
 ## Struttura concettuale del codice
 
@@ -14,13 +16,13 @@ La pipeline concettuale prevede 6 tipi di dataset (D1, ..., D6) e 5 tipi di tras
 
 <img src="https://github.com/user-attachments/assets/72f025cb-c98f-4e29-99d7-f546cf6f7aa9" width="1000"  alt="Graphical representation of the ConcePTION pipeline">
 
-I tipi di dataset e trasformazioni sono le seguenti
+I tipi di dataset e trasformazioni sono i seguenti
 
 - <b>D1 - Dati originali</b>: questa è la data source originale, raccolta per ragioni che normalmente non includono la ricerca o il quesito specifico
-- <b>T1 - Extract Transform and Load (ETL)</b>: questo è il processo di estrarre da D1 una istanza ristretta, sufficiente per condurre lo studio, e di convertirla in un Common Data Model; in questo esercizio utilizziamo una espansione del CDM di The ShinISS (più dettagli qui sotto)
+- <b>T1 - Extract Transform and Load (ETL)</b>: questo è il processo di estrarre da D1 una istanza ristretta, sufficiente per condurre lo studio, e di convertirla in un Common Data Model; in questo esercizio utilizziamo una espansione del CDM di TheShinISS (più dettagli qui sotto)
 - <b>D2 - Istanza del Common Data Model</b>: questo è il risultato della conversione
 - <b>T2 - Crea variabili di studio</b>: questo è il processo con cui vengono costruite variabili sulla base dei dati contenuti nell'istanza
-- <b>D3 - Variabili di studio</b>: sono dataset che contengono i soggetti dello studio o altre unità di osservazioni intermedie di interesse (gravidanze, episoddi di trattamento con un farmaco, ...) e le loro variabili, necessarie per implementare il protocollo di studio.
+- <b>D3 - Variabili di studio</b>: sono dataset che contengono i soggetti dello studio o altre unità di osservazione intermedie di interesse (gravidanze, episodi di trattamento con un farmaco, ...) e le loro variabili, necessarie per implementare il protocollo di studio.
 - <b>T3 - Applica il disegno di studio</b>: questo è il processo con cui le variabili di studio vengono utilizzate per applicare il disegno di studio, come previsto dal protocollo, e quindi selezionare, stimare propensity scores, appaiare, censurare, ...
 - <b>D4 - Dataset analitici</b>: dataset in cui sono custodite le variabili che hanno una funzione nell'analisi, come esposizione, t0, tempo alla fine del follow up...
 - <b>T4 - Conduci l'analisi</b>: questo è il processo con cui si conducono analisi descrittive o si stimano modelli statistici
@@ -82,7 +84,7 @@ Una persona può avere più di un record in `ANAGRAFE_ASSISTITI`, uno per ciascu
 |---|---|---|---|
 | `id` | carattere | | Identificativo della persona, collegato a `ANAGRAFE_ASSISTITI` |
 | `data_a` | data | `AAAAMMGG` | Data di accesso al pronto soccorso |
-| `dia` | carattere | codice ICD-9-CM senza punto | Diagnosi |
+| `dia` | carattere | codice ICD-9-CM con o senza punto | Diagnosi |
 
 <b>EXE – Esenzioni per patologia</b>
 
@@ -107,13 +109,19 @@ Le due tabelle hanno la stessa struttura: `SPF` contiene i farmaci erogati dalle
 | `atc` | carattere | codice ATC, a qualsiasi livello (es. `A10`, `C01DA`) | Classificazione Anatomica Terapeutica Chimica del farmaco |
 
 
-### Formatod el grafico e struttura del codice di questo specifico studio
+### Formato del grafico e struttura del codice di questo specifico studio
 
-La struttura del codice specifica di questo studio è illustrata da questo grafico. Il formato del grafico è stato introdotto da VAC4EU e utilizzato in diversi progetti condotti per la European Medicines Agency.
+La struttura del codice specifica di questo studio è illustrata da [questo grafico](https://comfy-sherbet-4e44c6.netlify.app/). Il formato del grafico è stato introdotto da VAC4EU e utilizzato in diversi progetti condotti per la European Medicines Agency.
 
 Nel grafico 
 
-- ogni cerchio rappresenta una trasformazione T* e premendolo si viene trasportati al codice corrisponente nel repository
+- ogni cerchio rappresenta una trasformazione T* e premendolo si viene trasportati al codice corrispondente nel repository
 - ogni rettangolo rappresenta un dataset D* e premendolo si viene trasportati al codebook di tale dataset
 
 ## Come usare questo repository
+
+## Clonare il repository localmente
+
+## Usare il codice per generare risultati (modalità TEST == F)
+
+## Usare il codice per testare il processo di un singolo step (modalità TEST == T)
