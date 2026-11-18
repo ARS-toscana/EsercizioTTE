@@ -85,6 +85,12 @@ j <- j + 1
 tab_nice[, cell := drug]
 setnames(tab_nice, "cell", paste0("cell_", j))
 
+# row 4
+row_header_1 <- c(row_header_1, "N")
+j <- j + 1
+tab_nice[, cell := as.character(N)]
+setnames(tab_nice, "cell", paste0("cell_", j))
+
 # row 5-6
 row_header_1 <- c(row_header_1, "Età alla data indice,", "  mediana (Q1 - Q3)")
 j <- add_empty_row(j)
