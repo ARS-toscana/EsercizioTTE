@@ -345,6 +345,31 @@ cumulative_incidence_unadj <-
     ggtheme = ggplot2::theme_minimal()
     )
 
+y_min_surv <- floor(
+  min(cumulative_incidence_unadj_fit$lower, na.rm = TRUE) * 100
+) / 100
+
+survival_unadj <-
+  survminer::ggsurvplot(
+    cumulative_incidence_unadj_fit,
+    data = plot_input,
+    conf.int = TRUE,
+    censor = TRUE,
+    censor.shape = 3,
+    censor.size = 2.5,
+    palette = c("#F8766D", "#00BFC4"),
+    legend.labs = c("Comparators", "Exposed"),
+    xlab = "Day since start of risk period",
+    ylab = "Survival probability",
+    ylim = c(y_min_surv, 1),
+    title = paste0(
+      analysisIR_HR,
+      ": unadjusted cumulative incidence"
+    ),
+    risk.table = FALSE,
+    ggtheme = ggplot2::theme_minimal()
+  )
+
 # End of DG-CHANGES
     
     
@@ -513,6 +538,20 @@ if (make_diagnostic_plots && !is.null(cumulative_incidence_unadj)) {
       # ".pdf"
       ),
     plot = cumulative_incidence_unadj$plot,
+    path = thisdiroutput,
+    width = 10,
+    height = 6
+  )
+  
+  ggsave(
+    filename = paste0(
+      "D5_",
+      analysisIR_HR,
+      "_Figure_survival_unadjusted.pdf"
+      # suffix,
+      # ".pdf"
+    ),
+    plot = survival_unadj$plot,
     path = thisdiroutput,
     width = 10,
     height = 6
