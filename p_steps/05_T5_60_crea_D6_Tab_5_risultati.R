@@ -191,6 +191,12 @@ table1_long <- merge(general_info, table1_long,
 cols_to_clean <- c("Hazard ratio (95% CI)", 
                    "Differenza Restricted Mean Survival Time 1 anno (95% CI)"
 )
+
+cols_general <- c("N pazienti", "N eventi", 
+                  "Anni-Persona", "Incidence rate (95% CI)")
+
+table1_long[Analisi == "Aggiustato (IPTW)", (cols_general) := "-"]
+
 table1_long[, (cols_to_clean) := lapply(.SD, function(x) fifelse(is.na(x), "-", x)),
             .SDcols = cols_to_clean]
 
