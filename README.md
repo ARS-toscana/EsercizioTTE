@@ -6,7 +6,7 @@ Lo script implementa lo studio simulato il cui protocollo si trova a [questo lin
 
 Il codice è ispirato massicciamente al codice dei Case Studies 3, 4 e 5 del progetto europeo [TARGET-EU](https://github.com/target-roc19), finanziato dalla European Medicines Agency, condotto dal network [EU-PE&PV](https://www.uu.nl/en/research/eu-pepv-research-network) e programmato da istituzioni dell'associazione europea [VAC4EU](https://vac4eu.org/). Un'altra fonte di ispirazione è [questo studio descrittivo](https://github.com/CentroRegionaleFVToscana/cancro_prostata) condotto dal [Centro Regionale di Farmacovigilanza della Toscana](https://www.regione.toscana.it/-/centro-regionale-farmacovigilanza) per il [Rapporto Farmaci in Toscana 2026](https://www.ars.toscana.it/pubblicazioni-ns/documenti/5656-rapporto-sui-farmaci-in-toscana-2026.html).
 
-La struttura del codice specifica di questo studio è illustrata da [questo grafico](https://comfy-sherbet-4e44c6.netlify.app/), il cui formato è descritto [più sotto](#formato-del-grafico-e-struttura-del-codice-di-questo-specifico-studio).
+La struttura del codice specifica di questo studio è illustrata da [questo grafico](https://ars-toscana.github.io/EsercizioTTE/diagram.html), il cui formato è descritto [più sotto](#formato-del-grafico-e-struttura-del-codice-di-questo-specifico-studio).
 
 ## Indice
 
@@ -148,7 +148,7 @@ Le due tabelle hanno la stessa struttura: `SPF` contiene i farmaci erogati dalle
 
 ### Formato del grafico e struttura del codice di questo specifico studio
 
-La struttura del codice specifica di questo studio è illustrata da [questo grafico](https://comfy-sherbet-4e44c6.netlify.app/). Il formato del grafico è stato introdotto da VAC4EU e utilizzato in diversi progetti condotti per la European Medicines Agency, per esempio il [CS3 di TARGET-EU](https://target-roc19.github.io/case-study-03-dapagliflozin-public/diagram.html).
+La struttura del codice specifica di questo studio è illustrata da [questo grafico](https://ars-toscana.github.io/EsercizioTTE/diagram.html). Il formato del grafico è stato introdotto da VAC4EU e utilizzato in diversi progetti condotti per la European Medicines Agency, per esempio il [CS3 di TARGET-EU](https://target-roc19.github.io/case-study-03-dapagliflozin-public/diagram.html).
 
 Nel grafico:
 
