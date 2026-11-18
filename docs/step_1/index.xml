@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>_index.en on Esercizio TTE Documentation</title>
+    <link>/step_1/index.html</link>
+    <description>Recent content in _index.en on Esercizio TTE Documentation</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <lastBuildDate>Wed, 18 Nov 2026 00:00:00 +0000</lastBuildDate><atom:link href="/step_1/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>codelist_id_dataset</title>
+      <link>/step_1/codelist_id_dataset/index.html</link>
+      <pubDate>Wed, 18 Nov 2026 00:00:00 +0000</pubDate>
+      <guid>/step_1/codelist_id_dataset/index.html</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>D3_individui</title>
+      <link>/step_1/d3_individui/index.html</link>
+      <pubDate>Wed, 18 Nov 2026 00:00:00 +0000</pubDate>
+      <guid>/step_1/d3_individui/index.html</guid>
+      <description>MetadataData ModelParametersExample{&#34;x&#34;:{&#34;tag&#34;:{&#34;name&#34;:&#34;Reactable&#34;,&#34;attribs&#34;:{&#34;data&#34;:{&#34;medatata_name&#34;:[&#34;Name of the dataset&#34;,&#34;Content of the dataset&#34;,&#34;Unit of observation&#34;,&#34;Dataset where the list of UoOs is fully listed and with 1 record per UoO&#34;,&#34;How many observations per UoO&#34;,&#34;NxUoO&#34;,&#34;Variables capturing the UoO&#34;,&#34;Primary key&#34;,&#34;Parameters&#34;,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],&#34;metadata_content&#34;:[&#34;D3_individui&#34;,&#34;popolazione dell&#39;istanza con dati demografici&#34;,&#34;persone nella popolazione dell&#39;istanza&#34;,&#34;valori unici di id in ANAGRAFE_ASSISTITI&#34;,&#34;1&#34;,&#34;1&#34;,&#34;person_id&#34;,&#34;person_id&#34;,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null]},&#34;columns&#34;:[{&#34;id&#34;:&#34;medatata_name&#34;,&#34;name&#34;:&#34;medatata_name&#34;,&#34;type&#34;:&#34;character&#34;},{&#34;id&#34;:&#34;metadata_content&#34;,&#34;name&#34;:&#34;metadata_content&#34;,&#34;type&#34;:&#34;character&#34;}],&#34;sortable&#34;:false,&#34;searchable&#34;:true,&#34;pagination&#34;:false,&#34;highlight&#34;:true,&#34;bordered&#34;:true,&#34;striped&#34;:true,&#34;style&#34;:{&#34;maxWidth&#34;:1800},&#34;height&#34;:&#34;600px&#34;,&#34;dataKey&#34;:&#34;02370df96468685176bf933c2005069d&#34;},&#34;children&#34;:[]},&#34;class&#34;:&#34;reactR_markup&#34;},&#34;evals&#34;:[],&#34;jsHooks&#34;:[]}{&#34;x&#34;:{&#34;tag&#34;:{&#34;name&#34;:&#34;Reactable&#34;,&#34;attribs&#34;:{&#34;data&#34;:{&#34;Varname&#34;:[&#34;person_id&#34;,&#34;dati_incompleti&#34;,&#34;gender&#34;,&#34;birth_date&#34;,&#34;death_date&#34;,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],&#34;Description&#34;:[&#34;identificativo della persona&#34;,&#34;dati sul genere e sulla data di nascita incompleti o assurdi&#34;</description>
+    </item>
+    <item>
+      <title>D3_periodi_osservazione</title>
+      <link>/step_1/d3_periodi_osservazione/index.html</link>
+      <pubDate>Wed, 18 Nov 2026 00:00:00 +0000</pubDate>
+      <guid>/step_1/d3_periodi_osservazione/index.html</guid>
+      <description>MetadataData ModelParametersExample{&#34;x&#34;:{&#34;tag&#34;:{&#34;name&#34;:&#34;Reactable&#34;,&#34;attribs&#34;:{&#34;data&#34;:{&#34;medatata_name&#34;:[&#34;Name of the dataset&#34;,&#34;Content of the dataset&#34;,&#34;Unit of observation&#34;,&#34;Dataset where the list of UoOs is fully listed and with 1 record per UoO&#34;,&#34;How many observations per UoO&#34;,&#34;NxUoO&#34;,&#34;Variables capturing the UoO&#34;,&#34;Primary key&#34;,&#34;Parameters&#34;,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],&#34;metadata_content&#34;:[&#34;D3_periodi_osservazione&#34;,&#34;periodi di osservazione nell’istanza, ben formati (iniziano prima di finire), separati, distanti li uni dagli altri almeno 365 giorni&#34;,&#34;persone nella popolazione dell&#39;istanza&#34;,&#34;valori unici di id in ANAGRAFE_ASSISTITI&#34;,&#34;può essere 0 se i periodi di osservazione sono ttti mal formati&#34;</description>
+    </item>
+  </channel>
+</rss>

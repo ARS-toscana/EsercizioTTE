@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>_index.en on Esercizio TTE Documentation</title>
+    <link>/step_5/index.html</link>
+    <description>Recent content in _index.en on Esercizio TTE Documentation</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <lastBuildDate>Wed, 18 Nov 2026 00:00:00 +0000</lastBuildDate><atom:link href="/step_5/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>D6_Tab_1_attrition</title>
+      <link>/step_5/d6_tab_1_attrition/index.html</link>
+      <pubDate>Wed, 18 Nov 2026 00:00:00 +0000</pubDate>
+      <guid>/step_5/d6_tab_1_attrition/index.html</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>D6_Tab_2_caratteristiche_baseline</title>
+      <link>/step_5/d6_tab_2_caratteristiche_baseline/index.html</link>
+      <pubDate>Wed, 18 Nov 2026 00:00:00 +0000</pubDate>
+      <guid>/step_5/d6_tab_2_caratteristiche_baseline/index.html</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>D6_Fig_S1_distribuzione_PS</title>
+      <link>/step_5/d6_fig_s1_distribuzione_ps/index.html</link>
+      <pubDate>Wed, 18 Nov 2026 00:00:00 +0000</pubDate>
+      <guid>/step_5/d6_fig_s1_distribuzione_ps/index.html</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>D6_Tab_3_asd_prima_dopo_pesi</title>
+      <link>/step_5/d6_tab_3_asd_prima_dopo_pesi/index.html</link>
+      <pubDate>Wed, 18 Nov 2026 00:00:00 +0000</pubDate>
+      <guid>/step_5/d6_tab_3_asd_prima_dopo_pesi/index.html</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>D6_Tab_4_follow_up_time_e_cause_uscita</title>
+      <link>/step_5/d6_tab_4_follow_up_time_e_cause_uscita/index.html</link>
+      <pubDate>Wed, 18 Nov 2026 00:00:00 +0000</pubDate>
+      <guid>/step_5/d6_tab_4_follow_up_time_e_cause_uscita/index.html</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>D6_Tab_5_risultati</title>
+      <link>/step_5/d6_tab_5_risultati/index.html</link>
+      <pubDate>Wed, 18 Nov 2026 00:00:00 +0000</pubDate>
+      <guid>/step_5/d6_tab_5_risultati/index.html</guid>
+      <description></description>
+    </item>
+  </channel>
+</rss>

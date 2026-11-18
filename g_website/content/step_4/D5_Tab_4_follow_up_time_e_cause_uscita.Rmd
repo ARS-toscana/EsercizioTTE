@@ -1,0 +1,18 @@
+---
+weight: 5
+name_excel: "D5_Tab_4_follow_up_time_e_cause_uscita.xlsx"
+description: "`r get_description(rmarkdown::metadata$name_excel)`"
+slug: "D5_Tab_4_follow_up_time_e_cause_uscita"
+datetime: 1.7949944e+09
+title: D5_Tab_4_follow_up_time_e_cause_uscita
+author: ''
+date: '2026-11-18'
+categories: []
+tags: []
+archetype: codebook
+output: html_document
+---
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+html_codebook(rmarkdown::metadata$name_excel)
+```

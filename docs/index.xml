@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Esercizio TTE Documentation</title>
+    <link>/index.html</link>
+    <description>Recent content on Esercizio TTE Documentation</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <lastBuildDate>Wed, 18 Nov 2026 00:00:00 +0000</lastBuildDate><atom:link href="/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>_index.en</title>
+      <link>/step_1/index.html</link>
+      <pubDate>Wed, 18 Nov 2026 00:00:00 +0000</pubDate>
+      <guid>/step_1/index.html</guid>
+      <description>codelist_id_datasetD3_individuipopolazione dell&amp;#39;istanza con dati demografici
+D3_periodi_osservazioneperiodi di osservazione nell’istanza, ben formati (iniziano prima di finire), separati, distanti li uni dagli altri almeno 365 giorni
+ </description>
+    </item>
+    <item>
+      <title>_index.en</title>
+      <link>/step_2/index.html</link>
+      <pubDate>Wed, 18 Nov 2026 00:00:00 +0000</pubDate>
+      <guid>/step_2/index.html</guid>
+      <description>D3_selezione_esp_compcriteri di selezione che partono dalla popolazione dell&amp;#39;istanza e arriva alla coorte di primi utilizzatori di A o B nel periodo di studio
+D3_esp_compAssistiti in Toscana, nuovi utilizzatori di farmaco A o farmaco B nel periodo 2016-2025
+D3_episodi_trattamentoD3_esp_comp_con_baselineAssistiti in Toscana, nuovi utilizzatori di farmaco A o farmaco B con caratterizzazione nel periodo 2016-2025
+D3_outcomeAssistiti in Toscana, nuovi utilizzatori di farmaco A o farmaco B con outcome nel periodo 2016-2025</description>
+    </item>
+    <item>
+      <title>_index.en</title>
+      <link>/step_3/index.html</link>
+      <pubDate>Wed, 18 Nov 2026 00:00:00 +0000</pubDate>
+      <guid>/step_3/index.html</guid>
+      <description>D4_esp_comp_pesiAssistiti in Toscana, nuovi utilizzatori di farmaco A o farmaco B con propensity scores (PS) e pesi nel periodo 2016-2025
+D4_esp_comp_pesi_troncati_trimmedAssistiti in Toscana, nuovi utilizzatori di farmaco A o farmaco B con propensity scores (PS), pesi, PS trimmati e pesi da PS trimmati nel periodo 2016-2025
+D4_follow_upVariabili di follow up della popolazione di studio
+D4_dataset_analitico_IR_HR_RMSTAssistiti in Toscana, nuovi utilizzatori di farmaco A o farmaco B con evento e tempo all&amp;#39;evento, pesi e pesi da PS trimmati nel periodo 2016-2025</description>
+    </item>
+    <item>
+      <title>_index.en</title>
+      <link>/step_4/index.html</link>
+      <pubDate>Wed, 18 Nov 2026 00:00:00 +0000</pubDate>
+      <guid>/step_4/index.html</guid>
+      <description>D5_Tab_1_attritionD5_Tab_2_caratteristiche_baselineD5_Fig_S1_distribuzione_PSD5_Tab_3_asd_prima_dopo_pesiD5_Tab_4_follow_up_time_e_cause_uscitaD5_RisultatiIR_HRD5_RisultatiRMST </description>
+    </item>
+    <item>
+      <title>_index.en</title>
+      <link>/step_5/index.html</link>
+      <pubDate>Wed, 18 Nov 2026 00:00:00 +0000</pubDate>
+      <guid>/step_5/index.html</guid>
+      <description>D6_Tab_1_attritionD6_Tab_2_caratteristiche_baselineD6_Fig_S1_distribuzione_PSD6_Tab_3_asd_prima_dopo_pesiD6_Tab_4_follow_up_time_e_cause_uscitaD6_Tab_5_risultati </description>
+    </item>
+  </channel>
+</rss>
