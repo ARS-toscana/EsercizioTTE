@@ -130,7 +130,7 @@ data[, switch := rbinom(.N, size=1, prob=p_switch)]
 
 
 # filtro
-to_keep <- c("esposizione", "age", covariates_binary, "interruzione", "switch")
+to_keep <- c("esposizione", "age", covariates_binary)
 variables <- data[,..to_keep]
 
 # rimozione variabili costanti
@@ -339,37 +339,57 @@ data[, truncated_ps := fifelse(
 # Calculate IPTW from the remaining subjects' PS
 # Existing weight is overwritten.
 
-data[, weight := 0]
+#data[, weight := 0]
+data_trimmed <- data[in_overlap_tmp == 1L]
 
+# p_treated_trimmed <- mean(
+#   data[in_overlap_tmp == 1L, esposizione == 1],
+#   na.rm = TRUE
+# )
 p_treated_trimmed <- mean(
-  data[in_overlap_tmp == 1L, esposizione == 1],
-  na.rm = TRUE
-)
+  data_trimmed$esposizione == 1,
+    na.rm = TRUE)
 
-data[
-  in_overlap_tmp == 1L,
-  weight := fifelse(
+# data[
+#   in_overlap_tmp == 1L,
+#   weight := fifelse(
+#     esposizione == 1,
+#     p_treated_trimmed / ps,
+#     (1 - p_treated_trimmed) / (1 - ps)
+#   )
+# ]
+
+data_trimmed[, weight := fifelse(
     esposizione == 1,
     p_treated_trimmed / ps,
     (1 - p_treated_trimmed) / (1 - ps)
   )
 ]
-
 #########################################
 # Truncate resulting IPTW weights at 1st/99th percentile
 # among included subjects only
 
-data[, truncated_weight := 0]
+#data[, truncated_weight := 0]
 
+# q_weight <- quantile(
+#   data[in_overlap_tmp == 1L, weight],
+#   probs = c(0.01, 0.99),
+#   na.rm = TRUE
+# )
 q_weight <- quantile(
-  data[in_overlap_tmp == 1L, weight],
+  data_trimmed$weight,
   probs = c(0.01, 0.99),
   na.rm = TRUE
 )
 
-data[
-  in_overlap_tmp == 1L,
-  truncated_weight := pmin(
+# data[
+#   in_overlap_tmp == 1L,
+#   truncated_weight := pmin(
+#     pmax(weight, q_weight[1]),
+#     q_weight[2]
+#   )
+# ]
+data_trimmed[, truncated_weight := pmin(
     pmax(weight, q_weight[1]),
     q_weight[2]
   )
@@ -387,7 +407,8 @@ fit_grezzo
 prop.table(table(data$metastatic, data$esposizione), margin=2)*100
 
 fit_cox_ipw <- coxph(Surv(tempo_censura, outcome) ~ esposizione,
-                     data = data[in_overlap_tmp == 1],
+                     #data = data[in_overlap_tmp == 1],
+                     data_trimmed,
                      weights = truncated_weight,
                      robust = TRUE)
 
@@ -399,10 +420,15 @@ hr_grezzo
 hr_ipw <- exp(coef(fit_cox_ipw))
 hr_ipw
 
-weighted_table <- data[, .(
-  pct_metastatic_0 = sum(weight[metastatic == 0]) / sum(weight),
-  pct_metastatic_1 = sum(weight[metastatic == 1]) / sum(weight)
+# weighted_table <- data[, .(
+#   pct_metastatic_0 = sum(weight[metastatic == 0]) / sum(weight),
+#   pct_metastatic_1 = sum(weight[metastatic == 1]) / sum(weight)
+# ), by = esposizione]
+weighted_table <- data_trimmed[, .(
+  pct_metastatic_0 = sum(truncated_weight[metastatic == 0]) / sum(truncated_weight),
+  pct_metastatic_1 = sum(truncated_weight[metastatic == 1]) / sum(truncated_weight)
 ), by = esposizione]
+
 
 weighted_table
 
@@ -413,8 +439,8 @@ smd <- function(x, g, w = rep(1, length(x))) {
   m0 <- weighted.mean(x[g == 0], w[g == 0])
   (m1 - m0) / sqrt((m1 * (1 - m1) + m0 * (1 - m0)) / 2)
 }
-smd(data$metastatic, data$esposizione) # prima
-smd(data$metastatic, data$esposizione, data$weight) #dopo
+smd(data_trimmed$metastatic, data_trimmed$esposizione) # prima
+smd(data_trimmed$metastatic, data_trimmed$esposizione, data_trimmed$truncated_weight) #dopo
 
 
 
@@ -434,7 +460,7 @@ keep_cols <- unique(c(
   "truncated_weight"
 ))
 
-input <- data[, ..keep_cols]
+input <- data_trimmed[, ..keep_cols]
 
 
 ## salvo D4_follow_up
